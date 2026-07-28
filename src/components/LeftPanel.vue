@@ -91,7 +91,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref } from 'vue'
 import { useNoteStore } from '../stores/note'
 
 const emit = defineEmits(['openTrash', 'selectNote'])
@@ -115,7 +115,7 @@ function stripMD(content) {
     .replace(/\*(.+?)\*/g, '$1')
     .replace(/~~(.+?)~~/g, '$1')
     .replace(/`(.+?)`/g, '$1')
-    .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+    .replace(/\[(.+?)]\(.+?\)/g, '$1')
     .replace(/^>\s+/gm, '')
     .replace(/^- /gm, '')
     .replace(/^\d+\. /gm, '')

@@ -32,7 +32,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = ''
     try {
-      const res = await api.register(username, password)
+      await api.register(username, password)
       return true
     } catch (e) {
       error.value = e?.response?.data?.msg || e?.message || 'Register failed'

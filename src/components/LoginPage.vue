@@ -65,7 +65,7 @@ const form = reactive({
 })
 
 async function handleSubmit() {
-  let ok = false
+  let ok
   if (isRegister.value) {
     ok = await authStore.register(form.username, form.password)
     if (ok) {
