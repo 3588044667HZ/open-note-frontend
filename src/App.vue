@@ -13,7 +13,7 @@
             <line x1="7" y1="13" x2="10" y2="13" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
           </svg>
         </div>
-        <span class="app-title">Open Notes</span>
+        <span class="app-title">Open Note</span>
       </div>
       <div class="header-right">
         <span class="user-name">{{ authStore.user?.username || 'User' }}</span>

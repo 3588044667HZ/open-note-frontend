@@ -9,7 +9,7 @@
           <line x1="11" y1="17" x2="21" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           <line x1="11" y1="22" x2="16" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        <h1>OPPO Notes</h1>
+        <h1>OPEN Note</h1>
       </div>
       <p class="login-subtitle">{{ isRegister ? 'Create an account' : 'Sign in to continue' }}</p>
 
