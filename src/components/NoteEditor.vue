@@ -144,7 +144,7 @@ async function autoSave(force = false) {
     isPinned: form.isPinned,
   }
   try {
-    const updated = await store.editNote(props.note.id, data, lastSavedVersion)
+    const updated = await store.editNote(props.note.id, data, force ? lastSavedVersion : null)
     lastSavedVersion = updated.updatedAt
     dirty.value = false
     emit('updated', updated)
@@ -152,6 +152,18 @@ async function autoSave(force = false) {
     if (e?.response?.status === 409) {
       hasConflict.value = true
       await store.fetchNotes()
+      if (force) {
+        const latest = store.notes.find(n => n.id === props.note.id)
+        if (latest) {
+          form.title = latest.title || ''
+          form.content = latest.content || ''
+          form.color = latest.color || 'blue'
+          form.notebookId = latest.notebookId || null
+          form.isPinned = latest.isPinned || false
+          lastSavedVersion = latest.updatedAt
+          hasConflict.value = false
+        }
+      }
       dirty.value = false
     }
   }
