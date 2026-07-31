@@ -210,9 +210,10 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #fafafa;
+  background: var(--sk-content-bg, #fafafa);
   overflow: hidden;
   position: relative;
+  transition: background-color 0.3s ease;
 }
 
 .color-accent {
@@ -238,10 +239,11 @@ onUnmounted(() => {
 
 .editor-header {
   padding: 16px 20px 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid var(--sk-border, rgba(0, 0, 0, 0.05));
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: border-color 0.3s ease;
 }
 
 .header-row-1 {
@@ -254,11 +256,12 @@ onUnmounted(() => {
   flex: 1;
   font-size: 20px;
   font-weight: 700;
-  color: #000;
+  color: var(--sk-title, #000);
   background: transparent;
   padding: 0;
   border: none;
   outline: none;
+  transition: color 0.3s ease;
 }
 .title-input::placeholder {
   color: rgba(0, 0, 0, 0.2);
@@ -296,10 +299,11 @@ onUnmounted(() => {
   border-radius: 5px;
   padding: 0 6px;
   font-size: 12px;
-  background: #fff;
-  color: rgba(0, 0, 0, 0.55);
+  background: var(--sk-card-bg, #fff);
+  color: var(--sk-text, rgba(0, 0, 0, 0.55));
   outline: none;
   cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .color-dots {
@@ -326,8 +330,9 @@ onUnmounted(() => {
 
 .time-label {
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--sk-time, rgba(0, 0, 0, 0.25));
   margin-left: auto;
+  transition: color 0.3s ease;
 }
 
 .editor-footer {
@@ -335,7 +340,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 8px 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  border-top: 1px solid var(--sk-border-light, rgba(0, 0, 0, 0.04));
+  transition: border-color 0.3s ease;
 }
 
 .char-hint {

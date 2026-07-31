@@ -10,8 +10,8 @@
       </div>
       <div class="search-row">
         <svg class="search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none">
-          <circle cx="7" cy="7" r="5.5" stroke="rgba(0,0,0,0.35)" stroke-width="1.2"/>
-          <line x1="11" y1="11" x2="14.5" y2="14.5" stroke="rgba(0,0,0,0.35)" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2"/>
+          <line x1="11" y1="11" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
         </svg>
         <input
           v-model="store.searchKeyword"
@@ -22,7 +22,7 @@
       </div>
       <div class="sort-row">
         <svg class="sort-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <path d="M3 2v8M1 4l2-2 2 2M9 10V2M11 8L9 10l-2-2" stroke="rgba(0,0,0,0.35)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M3 2v8M1 4l2-2 2 2M9 10V2M11 8L9 10l-2-2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <select v-model="store.sortBy" class="sort-select">
           <option value="updatedAt">Last modified</option>
@@ -147,19 +147,21 @@ async function handleAddNotebook() {
 <style scoped>
 .left-panel {
   width: 280px;
-  background: #fff;
-  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--sk-card-bg, #fff);
+  border-right: 1px solid var(--sk-border, rgba(0, 0, 0, 0.06));
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .panel-toolbar {
   padding: 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--sk-border, rgba(0, 0, 0, 0.06));
   display: flex;
   flex-direction: column;
   gap: 8px;
+  transition: border-color 0.3s ease;
 }
 
 .nb-select-row {
@@ -174,13 +176,14 @@ async function handleAddNotebook() {
   border-radius: 6px;
   padding: 0 8px;
   font-size: 13px;
-  background: #fff;
-  color: #000;
+  background: var(--sk-card-bg, #fff);
+  color: var(--sk-text, #000);
   outline: none;
   cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 .nb-dropdown:focus {
-  border-color: #006aff;
+  border-color: var(--sk-accent, #006aff);
 }
 
 .nb-add-btn {
@@ -190,10 +193,11 @@ async function handleAddNotebook() {
   font-size: 18px;
   font-weight: 600;
   color: rgba(0, 0, 0, 0.45);
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--sk-input-bg, rgba(0, 0, 0, 0.04));
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.3s ease;
 }
 .nb-add-btn:hover {
   background: rgba(0, 0, 0, 0.08);
@@ -203,10 +207,11 @@ async function handleAddNotebook() {
 .search-row {
   display: flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--sk-input-bg, rgba(0, 0, 0, 0.04));
   border-radius: 6px;
   padding: 5px 10px;
   gap: 6px;
+  transition: background-color 0.3s ease;
 }
 .search-row:focus-within {
   background: rgba(0, 0, 0, 0.06);
@@ -214,15 +219,17 @@ async function handleAddNotebook() {
 
 .search-icon {
   flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.35);
 }
 
 .search-input {
   flex: 1;
   background: transparent;
   font-size: 13px;
-  color: #000;
+  color: var(--sk-text, #000);
   border: none;
   outline: none;
+  transition: color 0.3s ease;
 }
 .search-input::placeholder {
   color: rgba(0, 0, 0, 0.3);
@@ -237,6 +244,7 @@ async function handleAddNotebook() {
 .sort-icon {
   flex-shrink: 0;
   margin-left: 2px;
+  color: rgba(0, 0, 0, 0.35);
 }
 
 .sort-select {
@@ -262,11 +270,12 @@ async function handleAddNotebook() {
   border-radius: 8px;
   font-size: 13px;
   font-weight: 700;
-  background: #006aff;
+  background: var(--sk-accent, #006aff);
   color: #fff;
+  transition: background-color 0.3s ease;
 }
 .new-note-btn:hover {
-  background: linear-gradient(0deg, rgba(0,0,0,0.12), rgba(0,0,0,0.12)), #006aff;
+  background: linear-gradient(0deg, rgba(0,0,0,0.12), rgba(0,0,0,0.12)), var(--sk-accent, #006aff);
 }
 
 .note-list {
@@ -286,15 +295,15 @@ async function handleAddNotebook() {
   align-items: stretch;
   padding: 10px 12px;
   cursor: pointer;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid var(--sk-border-light, rgba(0, 0, 0, 0.04));
   transition: background 0.12s;
   gap: 10px;
 }
 .note-item:hover {
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--sk-hover-bg, rgba(0, 0, 0, 0.02));
 }
 .note-item.active {
-  background: rgba(0, 106, 255, 0.06);
+  background: var(--sk-active-bg, rgba(0, 106, 255, 0.06));
 }
 
 .color-bar {
@@ -312,11 +321,12 @@ async function handleAddNotebook() {
 .note-item-title {
   font-size: 14px;
   font-weight: 700;
-  color: #000;
+  color: var(--sk-title, #000);
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 0.3s ease;
 }
 
 .note-item-preview {
@@ -337,10 +347,11 @@ async function handleAddNotebook() {
 
 .panel-footer {
   padding: 10px 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--sk-border, rgba(0, 0, 0, 0.06));
   display: flex;
   align-items: center;
   justify-content: space-between;
+  transition: border-color 0.3s ease;
 }
 
 .trash-link {
@@ -372,11 +383,12 @@ async function handleAddNotebook() {
 }
 
 .popup-box {
-  background: #fafafa;
+  background: var(--sk-popup-bg, #fafafa);
   border-radius: 12px;
   padding: 20px;
   width: 260px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
 }
 
 .popup-input {
@@ -388,9 +400,12 @@ async function handleAddNotebook() {
   font-size: 14px;
   margin-bottom: 14px;
   outline: none;
+  background: var(--sk-card-bg, #fff);
+  color: var(--sk-text, #000);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 .popup-input:focus {
-  border-color: #006aff;
+  border-color: var(--sk-accent, #006aff);
 }
 
 .popup-btns {
@@ -415,10 +430,11 @@ async function handleAddNotebook() {
   border-radius: 6px;
   font-size: 13px;
   font-weight: 700;
-  background: #006aff;
+  background: var(--sk-accent, #006aff);
   color: #fff;
+  transition: background-color 0.3s ease;
 }
 .btn-ok:hover {
-  background: linear-gradient(0deg, rgba(0,0,0,0.12), rgba(0,0,0,0.12)), #006aff;
+  background: linear-gradient(0deg, rgba(0,0,0,0.12), rgba(0,0,0,0.12)), var(--sk-accent, #006aff);
 }
 </style>

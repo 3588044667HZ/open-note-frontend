@@ -15,8 +15,8 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-size: 14px;
-  color: rgba(0, 0, 0, 0.85);
-  background-color: #f0f0f0;
+  color: var(--sk-text, rgba(0, 0, 0, 0.85));
+  background-color: var(--sk-backcloth, #f0f0f0);
 }
 
 ::-webkit-scrollbar {
@@ -25,11 +25,11 @@ body {
 }
 ::-webkit-scrollbar-track {
   border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: var(--sk-scrollbar-track, rgba(0, 0, 0, 0.1));
 }
 ::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--sk-scrollbar-thumb, rgba(0, 0, 0, 0.2));
 }
 
 img {
@@ -37,7 +37,7 @@ img {
 }
 
 a {
-  color: #006aff;
+  color: var(--sk-accent, #006aff);
   text-decoration: none;
 }
 

@@ -77,7 +77,7 @@ async function handlePermanentDelete(id) {
 }
 
 .trash-modal {
-  background: #fafafa;
+  background: var(--sk-popup-bg, #fafafa);
   border-radius: 16px;
   width: 560px;
   max-height: 80vh;
@@ -85,6 +85,7 @@ async function handlePermanentDelete(id) {
   flex-direction: column;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
   overflow: hidden;
+  transition: background-color 0.3s ease;
 }
 
 .trash-header {
@@ -92,13 +93,15 @@ async function handlePermanentDelete(id) {
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--sk-border, rgba(0, 0, 0, 0.06));
+  transition: border-color 0.3s ease;
 }
 
 .trash-header h2 {
   font-size: 18px;
   font-weight: 700;
-  color: #000;
+  color: var(--sk-title, #000);
+  transition: color 0.3s ease;
 }
 
 .close-btn {
@@ -144,9 +147,10 @@ async function handlePermanentDelete(id) {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: #fff;
-  border: 1px solid rgba(235, 236, 240, 0.6);
+  background: var(--sk-card-bg, #fff);
+  border: 1px solid var(--sk-border, rgba(235, 236, 240, 0.6));
   border-radius: 10px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .trash-item-info {
@@ -160,7 +164,8 @@ async function handlePermanentDelete(id) {
 .trash-item-title {
   font-size: 14px;
   font-weight: 700;
-  color: #000;
+  color: var(--sk-title, #000);
+  transition: color 0.3s ease;
 }
 
 .trash-item-content {
@@ -188,8 +193,9 @@ async function handlePermanentDelete(id) {
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
-  background: rgba(0, 106, 255, 0.1);
-  color: #006aff;
+  background: var(--sk-active-bg, rgba(0, 106, 255, 0.1));
+  color: var(--sk-accent, #006aff);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 .btn-recover:hover {
   background: rgba(0, 106, 255, 0.18);

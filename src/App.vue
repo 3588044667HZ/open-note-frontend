@@ -16,6 +16,18 @@
         <span class="app-title">Open Note</span>
       </div>
       <div class="header-right">
+        <button
+          class="eye-protect-btn"
+          :class="{ active: skinStore.isEyeProtectionMode }"
+          @click="skinStore.toggleEyeProtection()"
+          :title="skinStore.isEyeProtectionMode ? 'Disable eye protection' : 'Enable eye protection'"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.2"/>
+            <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+            <path d="M1 8c2-3.5 4-5.5 7-5.5s5 2 7 5.5c-2 3.5-4 5.5-7 5.5s-5-2-7-5.5z" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          </svg>
+        </button>
         <span class="user-name">{{ authStore.user?.username || 'User' }}</span>
         <button class="logout-btn" @click="handleLogout" title="Logout">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -44,6 +56,7 @@
 import { ref, onMounted } from 'vue'
 import { useNoteStore } from './stores/note'
 import { useAuthStore } from './stores/auth'
+import { useSkinStore } from './stores/skin'
 import LoginPage from './components/LoginPage.vue'
 import LeftPanel from './components/LeftPanel.vue'
 import NoteEditor from './components/NoteEditor.vue'
@@ -51,6 +64,7 @@ import TrashModal from './components/TrashModal.vue'
 
 const store = useNoteStore()
 const authStore = useAuthStore()
+const skinStore = useSkinStore()
 const currentNote = ref(null)
 const showTrash = ref(false)
 
@@ -81,6 +95,7 @@ async function handleLogout() {
 }
 
 onMounted(async () => {
+  skinStore.initSkin()
   if (authStore.isLoggedIn) {
     await onLoggedIn()
   }
@@ -102,9 +117,10 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background-color: #fff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background-color: var(--sk-header-bg, #fff);
+  border-bottom: 1px solid var(--sk-border, rgba(0, 0, 0, 0.06));
   flex-shrink: 0;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .header-left {
@@ -121,13 +137,34 @@ onMounted(async () => {
 .app-title {
   font-size: 16px;
   font-weight: 700;
-  color: #000;
+  color: var(--sk-title, #000);
+  transition: color 0.3s ease;
 }
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.eye-protect-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: rgba(0, 0, 0, 0.35);
+  background: transparent;
+  transition: all 0.2s ease;
+}
+.eye-protect-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.55);
+}
+.eye-protect-btn.active {
+  color: var(--sk-accent, #B8956E);
+  background: rgba(184, 149, 110, 0.1);
 }
 
 .user-name {
