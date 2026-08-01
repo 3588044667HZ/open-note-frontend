@@ -20,12 +20,17 @@ let darkModeMediaQuery = null
 export const useSkinStore = defineStore('skin', {
   state: () => ({
     currentSkinId: localStorage.getItem('current_skin_id') || SKIN_IDS.WHITE,
-    _darkMode: isSystemDarkMode(),
+    darkModeOverride: localStorage.getItem('dark_mode_override') || 'system',
   }),
 
   getters: {
     currentSkin(state) {
-      return getEffectiveSkin(state.currentSkinId)
+      return getEffectiveSkin(state.currentSkinId, state.darkModeOverride)
+    },
+    isDarkMode(state) {
+      if (state.darkModeOverride === 'dark') return true
+      if (state.darkModeOverride === 'light') return false
+      return isSystemDarkMode()
     },
     isEyeProtectionMode(state) {
       return state.currentSkinId === SKIN_IDS.YELLOW
@@ -59,6 +64,13 @@ export const useSkinStore = defineStore('skin', {
       }
     },
 
+    toggleDarkMode() {
+      const cycle = { system: 'dark', dark: 'light', light: 'system' }
+      this.darkModeOverride = cycle[this.darkModeOverride] || 'system'
+      localStorage.setItem('dark_mode_override', this.darkModeOverride)
+      this.applyCurrentSkin()
+    },
+
     applyCurrentSkin() {
       const skin = this.currentSkin
       const vars = computeCSSVariables(skin)
@@ -69,9 +81,10 @@ export const useSkinStore = defineStore('skin', {
       this.applyCurrentSkin()
       if (!darkModeMediaQuery) {
         darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-        darkModeMediaQuery.addEventListener('change', (e) => {
-          this._darkMode = e.matches
-          this.applyCurrentSkin()
+        darkModeMediaQuery.addEventListener('change', () => {
+          if (this.darkModeOverride === 'system') {
+            this.applyCurrentSkin()
+          }
         })
       }
     },

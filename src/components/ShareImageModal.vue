@@ -89,11 +89,12 @@ function handleDownload() {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--sk-icon-color, rgba(0, 0, 0, 0.45));
   background: transparent;
+  transition: all 0.2s ease;
 }
 .close-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--sk-hover-bg, rgba(0, 0, 0, 0.06));
 }
 
 .share-body {

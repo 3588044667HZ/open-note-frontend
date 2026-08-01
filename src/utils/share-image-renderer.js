@@ -44,13 +44,13 @@ function buildLayer(title, html, c, opts) {
   div.id = RENDER_ID
   div.style.cssText = `position:absolute;left:-9999px;top:0;z-index:-1;width:${opts.width}px;`
   div.innerHTML = `<div style="background:${c.backcloth};padding:24px;">
-    <div style="background:${c.contentBg};border-radius:12px;padding:32px;
+    <div style="background:${c.contentBg};border-radius:12px;padding:16px 24px 24px;
       color:${c.textColor};font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
       border:1px solid ${c.borderColor};">
-      <h2 style="color:${c.titleColor};font-size:24px;font-weight:600;
-        margin:0 0 24px;padding-bottom:12px;border-bottom:1px solid ${c.borderColor};">${title || 'Untitled'}</h2>
-      <div style="font-size:16px;line-height:1.8;word-break:break-word;">${html}</div>
-      <div style="height:1px;background:${c.borderColor};margin:32px 0 16px;"></div>
+      <h2 style="color:${c.titleColor};font-size:24px;font-weight:650;line-height:1.1;
+        padding:0 0 14px;margin:0;border-bottom:1px solid ${c.borderColor};">${title || 'Untitled'}</h2>
+      <div style="font-size:16px;line-height:calc(1em + 8px);word-break:break-word;">${html}</div>
+      <div style="height:1px;background:${c.borderColor};margin:24px 0 16px;"></div>
       <div style="text-align:center;font-size:12px;color:${c.timeColor};">
         <div>${opts.logoText}</div>
         <div style="opacity:0.7;margin-top:4px;">${opts.watermark}</div>

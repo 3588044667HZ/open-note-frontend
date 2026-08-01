@@ -192,16 +192,16 @@ async function handleAddNotebook() {
   border-radius: 6px;
   font-size: 18px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--sk-icon-color, rgba(0, 0, 0, 0.45));
   background: var(--sk-input-bg, rgba(0, 0, 0, 0.04));
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 .nb-add-btn:hover {
   background: rgba(0, 0, 0, 0.08);
-  color: #000;
+  color: var(--sk-icon-hover, #000);
 }
 
 .search-row {
@@ -219,7 +219,7 @@ async function handleAddNotebook() {
 
 .search-icon {
   flex-shrink: 0;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--sk-icon-color, rgba(0, 0, 0, 0.35));
 }
 
 .search-input {
@@ -232,7 +232,7 @@ async function handleAddNotebook() {
   transition: color 0.3s ease;
 }
 .search-input::placeholder {
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--sk-text-muted, rgba(0, 0, 0, 0.3));
 }
 
 .sort-row {
@@ -244,7 +244,7 @@ async function handleAddNotebook() {
 .sort-icon {
   flex-shrink: 0;
   margin-left: 2px;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--sk-icon-color, rgba(0, 0, 0, 0.35));
 }
 
 .sort-select {
@@ -253,7 +253,7 @@ async function handleAddNotebook() {
   border: none;
   background: transparent;
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--sk-text-secondary, rgba(0, 0, 0, 0.4));
   outline: none;
   cursor: pointer;
   padding: 0;
@@ -287,7 +287,7 @@ async function handleAddNotebook() {
   padding: 40px 0;
   text-align: center;
   font-size: 13px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--sk-text-muted, rgba(0, 0, 0, 0.3));
 }
 
 .note-item {
@@ -331,7 +331,7 @@ async function handleAddNotebook() {
 
 .note-item-preview {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--sk-text-muted, rgba(0, 0, 0, 0.35));
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -359,17 +359,17 @@ async function handleAddNotebook() {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--sk-text-secondary, rgba(0, 0, 0, 0.4));
   background: none;
   padding: 4px 0;
 }
 .trash-link:hover {
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--sk-icon-hover, rgba(0, 0, 0, 0.7));
 }
 
 .note-count {
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.25);
+  color: var(--sk-text-muted, rgba(0, 0, 0, 0.25));
 }
 
 .popup-mask {
@@ -419,7 +419,7 @@ async function handleAddNotebook() {
   border-radius: 6px;
   font-size: 13px;
   background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--sk-text-secondary, rgba(0, 0, 0, 0.6));
 }
 .btn-cancel:hover {
   background: rgba(0, 0, 0, 0.1);

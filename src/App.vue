@@ -28,6 +28,25 @@
             <path d="M1 8c2-3.5 4-5.5 7-5.5s5 2 7 5.5c-2 3.5-4 5.5-7 5.5s-5-2-7-5.5z" stroke="currentColor" stroke-width="1.2" fill="none"/>
           </svg>
         </button>
+        <button
+          class="dark-mode-btn"
+          @click="skinStore.toggleDarkMode()"
+          :title="darkModeTitle"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <template v-if="skinStore.darkModeOverride === 'dark'">
+              <circle cx="8" cy="8" r="4" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14M3.76 3.76l1.06 1.06M11.18 11.18l1.06 1.06M3.76 12.24l1.06-1.06M11.18 4.82l1.06-1.06" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </template>
+            <template v-else-if="skinStore.darkModeOverride === 'light'">
+              <path d="M8 2a6 6 0 100 12 4.5 4.5 0 010-9z" fill="currentColor"/>
+            </template>
+            <template v-else>
+              <circle cx="8" cy="8" r="4" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M11.5 4.5A5 5 0 004.5 11.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </template>
+          </svg>
+        </button>
         <span class="user-name">{{ authStore.user?.username || 'User' }}</span>
         <button class="logout-btn" @click="handleLogout" title="Logout">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -53,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useNoteStore } from './stores/note'
 import { useAuthStore } from './stores/auth'
 import { useSkinStore } from './stores/skin'
@@ -67,6 +86,11 @@ const authStore = useAuthStore()
 const skinStore = useSkinStore()
 const currentNote = ref(null)
 const showTrash = ref(false)
+
+const darkModeTitle = computed(() => {
+  const labels = { system: 'Dark mode: Auto', dark: 'Dark mode: On', light: 'Dark mode: Off' }
+  return labels[skinStore.darkModeOverride] || 'Dark mode'
+})
 
 function onSelectNote(note) {
   currentNote.value = note
@@ -154,23 +178,40 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--sk-icon-color, rgba(0, 0, 0, 0.35));
   background: transparent;
   transition: all 0.2s ease;
 }
 .eye-protect-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.55);
+  background: var(--sk-hover-bg, rgba(0, 0, 0, 0.06));
+  color: var(--sk-icon-hover, rgba(0, 0, 0, 0.55));
 }
 .eye-protect-btn.active {
   color: var(--sk-accent, #B8956E);
   background: rgba(184, 149, 110, 0.1);
 }
 
+.dark-mode-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--sk-icon-color, rgba(0, 0, 0, 0.35));
+  background: transparent;
+  transition: all 0.2s ease;
+}
+.dark-mode-btn:hover {
+  background: var(--sk-hover-bg, rgba(0, 0, 0, 0.06));
+  color: var(--sk-icon-hover, rgba(0, 0, 0, 0.55));
+}
+
 .user-name {
   font-size: 14px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--sk-icon-hover, rgba(0, 0, 0, 0.65));
+  transition: color 0.3s ease;
 }
 
 .logout-btn {
@@ -180,11 +221,12 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--sk-icon-color, rgba(0, 0, 0, 0.35));
   background: transparent;
+  transition: all 0.2s ease;
 }
 .logout-btn:hover {
-  background: rgba(224, 80, 80, 0.08);
+  background: rgba(224, 80, 80, 0.12);
   color: #e05050;
 }
 

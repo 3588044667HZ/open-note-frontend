@@ -184,6 +184,10 @@ export function computeCSSVariables(skin) {
     '--sk-border-light': isLightColor(contentBg) ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
     '--sk-input-bg': inputBg(contentBg),
     '--sk-hover-bg': hoverBg(contentBg),
+    '--sk-icon-color': isLightColor(contentBg) ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.45)',
+    '--sk-icon-hover': isLightColor(contentBg) ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.7)',
+    '--sk-text-secondary': isLightColor(contentBg) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.5)',
+    '--sk-text-muted': isLightColor(contentBg) ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.3)',
     '--sk-accent': accentColor(skin.id, text),
     '--sk-blockquote-bg': isLightColor(contentBg) ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.03)',
     '--sk-code-bg': isLightColor(contentBg) ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
@@ -202,6 +206,13 @@ export function computeCSSVariables(skin) {
     '--sk-scrollbar-thumb': isLightColor(contentBg)
       ? 'rgba(0,0,0,0.15)'
       : 'rgba(255,255,255,0.15)',
+    '--sk-link-color': isLightColor(contentBg) ? '#1A73E8' : '#8AB4F8',
+    '--sk-table-border': isLightColor(contentBg) ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.4)',
+    '--sk-table-header-bg': isLightColor(contentBg) ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)',
+    '--sk-selection-bg': isLightColor(contentBg) ? '#1A73E8' : '#8AB4F8',
+    '--sk-bold-weight': '750',
+    '--sk-title-font-size': '24px',
+    '--sk-content-font-size': '16px',
   }
 }
 
@@ -209,8 +220,14 @@ export function isSystemDarkMode() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
-export function getEffectiveSkin(skinId) {
-  const skin = SKINS[skinId] || SKINS[SKIN_IDS.WHITE]
+export function getEffectiveSkin(skinId, darkModeOverride = 'system') {
+  let skin = SKINS[skinId] || SKINS[SKIN_IDS.WHITE]
+  if (darkModeOverride === 'dark') {
+    return SKINS[SKIN_IDS.BLACK]
+  }
+  if (darkModeOverride === 'light') {
+    return SKINS[SKIN_IDS.WHITE]
+  }
   if (skin.id === SKIN_IDS.WHITE && isSystemDarkMode()) {
     return SKINS[SKIN_IDS.BLACK]
   }

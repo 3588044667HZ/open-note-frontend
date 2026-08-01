@@ -215,31 +215,34 @@ function autoScrollCursor(ta) {
   border-radius: 5px;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--sk-text-secondary, rgba(0, 0, 0, 0.55));
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 .tb-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: #000;
+  background: var(--sk-hover-bg, rgba(0, 0, 0, 0.06));
+  color: var(--sk-icon-hover, #000);
 }
 
 .tb-spacer {
   width: 1px;
   height: 18px;
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--sk-border, rgba(0, 0, 0, 0.08));
   margin: 0 4px;
+  transition: background-color 0.3s ease;
 }
 
 .mode-toggle {
   display: flex;
   margin-left: auto;
   gap: 2px;
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--sk-input-bg, rgba(0, 0, 0, 0.04));
   border-radius: 6px;
   padding: 2px;
+  transition: background-color 0.3s ease;
 }
 
 .mode-btn {
@@ -248,8 +251,9 @@ function autoScrollCursor(ta) {
   border-radius: 5px;
   font-size: 11px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--sk-text-secondary, rgba(0, 0, 0, 0.4));
   background: transparent;
+  transition: all 0.2s ease;
 }
 .mode-btn.active {
   background: var(--sk-card-bg, #fff);
@@ -283,9 +287,9 @@ function autoScrollCursor(ta) {
   resize: none;
   border: none;
   outline: none;
-  padding: 16px;
-  font-size: 14px;
-  line-height: 1.7;
+  padding: 0 24px;
+  font-size: var(--sk-content-font-size, 16px);
+  line-height: calc(1em + 8px);
   color: var(--sk-text, rgba(0, 0, 0, 0.85));
   font-family: 'SF Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
   background: transparent;
@@ -303,28 +307,32 @@ function autoScrollCursor(ta) {
 
 .md-preview-pane {
   overflow-y: auto;
-  padding: 16px;
+  padding: 0 24px;
 }
 
 .markdown-body {
   color: var(--sk-text, rgba(0, 0, 0, 0.85));
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: var(--sk-content-font-size, 16px);
+  line-height: calc(1em + 8px);
   transition: color 0.3s ease;
 }
 
-.markdown-body :deep(h1) { font-size: 1.6em; font-weight: 700; margin: 0.6em 0 0.3em; border-bottom: 1px solid var(--sk-border, rgba(0,0,0,0.1)); padding-bottom: 0.2em; color: var(--sk-title, #333); transition: border-color 0.3s ease, color 0.3s ease; }
-.markdown-body :deep(h2) { font-size: 1.35em; font-weight: 700; margin: 0.6em 0 0.3em; color: var(--sk-title, #333); transition: color 0.3s ease; }
-.markdown-body :deep(h3) { font-size: 1.15em; font-weight: 700; margin: 0.5em 0 0.2em; color: var(--sk-title, #333); transition: color 0.3s ease; }
+.markdown-body :deep(h1) { font-size: 1.6em; font-weight: var(--sk-bold-weight, 750); margin: 0.6em 0 0.3em; border-bottom: 1px solid var(--sk-border, rgba(0,0,0,0.1)); padding-bottom: 0.2em; color: var(--sk-title, rgba(0,0,0,0.9)); transition: border-color 0.3s ease, color 0.3s ease; }
+.markdown-body :deep(h2) { font-size: 1.35em; font-weight: var(--sk-bold-weight, 750); margin: 0.6em 0 0.3em; color: var(--sk-title, rgba(0,0,0,0.9)); transition: color 0.3s ease; }
+.markdown-body :deep(h3) { font-size: 1.15em; font-weight: var(--sk-bold-weight, 750); margin: 0.5em 0 0.2em; color: var(--sk-title, rgba(0,0,0,0.9)); transition: color 0.3s ease; }
+.markdown-body :deep(p) { margin: 0; }
+.markdown-body :deep(ul), .markdown-body :deep(ol) { padding-left: 1.5em; margin: 0.3em 0; }
+.markdown-body :deep(li) { margin: 0.15em 0; }
+.markdown-body :deep(b), .markdown-body :deep(strong) { font-weight: var(--sk-bold-weight, 750); }
 .markdown-body :deep(blockquote) { border-left: 3px solid var(--sk-accent, #006aff); padding: 0.2em 0.8em; margin: 0.5em 0; color: var(--sk-text, rgba(0,0,0,0.6)); background: var(--sk-accent-bg, rgba(0,106,255,0.03)); border-radius: 0 4px 4px 0; transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
 .markdown-body :deep(code) { background: var(--sk-code-bg, rgba(0,0,0,0.05)); padding: 0.15em 0.4em; border-radius: 3px; font-size: 0.88em; font-family: 'SF Mono', 'Fira Code', 'Consolas', 'Monaco', monospace; color: var(--sk-text, inherit); transition: background-color 0.3s ease, color 0.3s ease; }
 .markdown-body :deep(pre) { background: var(--sk-code-bg, rgba(0,0,0,0.03)); padding: 12px 16px; border-radius: 8px; overflow-x: auto; margin: 0.5em 0; transition: background-color 0.3s ease; }
 .markdown-body :deep(pre code) { background: none; padding: 0; }
 .markdown-body :deep(hr) { border: none; border-top: 1px solid var(--sk-border, rgba(0,0,0,0.1)); margin: 1em 0; transition: border-color 0.3s ease; }
-.markdown-body :deep(a) { color: var(--sk-accent, #006aff); transition: color 0.3s ease; }
+.markdown-body :deep(a) { color: var(--sk-link-color, #1A73E8); transition: color 0.3s ease; }
 .markdown-body :deep(table) { border-collapse: collapse; width: 100%; margin: 0.5em 0; }
-.markdown-body :deep(th), .markdown-body :deep(td) { border: 1px solid var(--sk-border, rgba(0,0,0,0.1)); padding: 6px 12px; text-align: left; font-size: 0.9em; transition: border-color 0.3s ease; }
-.markdown-body :deep(th) { background: var(--sk-code-bg, rgba(0,0,0,0.03)); font-weight: 600; transition: background-color 0.3s ease; }
+.markdown-body :deep(th), .markdown-body :deep(td) { border: 1px solid var(--sk-table-border, rgba(0,0,0,0.12)); padding: 8px 12px; text-align: left; font-size: 0.9em; transition: border-color 0.3s ease; }
+.markdown-body :deep(th) { background: var(--sk-table-header-bg, rgba(0,0,0,0.03)); font-weight: var(--sk-bold-weight, 750); transition: background-color 0.3s ease; }
 .markdown-body :deep(img) { max-width: 100%; border-radius: 6px; }
 .markdown-body :deep(input[type="checkbox"]) { margin-right: 6px; }
 </style>
