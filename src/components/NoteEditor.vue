@@ -16,23 +16,28 @@
       <div class="editor-header">
         <div class="header-row-1">
           <input
-            v-model="form.title"
-            type="text"
-            class="title-input"
-            placeholder="Title"
-            maxlength="100"
-            @input="dirty = true"
+              v-model="form.title"
+              type="text"
+              class="title-input"
+              placeholder="Title"
+              maxlength="100"
+              @input="dirty = true"
           />
           <div class="header-btns">
             <button class="hdr-btn" @click="handleShare" :disabled="sharing" title="Share as image">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.2">
-                <circle cx="6" cy="6" r="2"/>
-                <path d="M10 9l3 3M8 4l4-3v6M13 15H2V6" stroke-linecap="round"/>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                   class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd"
+                      d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
+                <path fill-rule="evenodd"
+                      d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
               </svg>
             </button>
             <button class="hdr-btn" @click="handlePin" :title="form.isPinned ? 'Unpin' : 'Pin'">
-              <svg width="15" height="15" viewBox="0 0 15 15" :fill="form.isPinned ? '#006aff' : 'none'" stroke="currentColor" stroke-width="1.2">
-                <path d="M9.5 2.5L12 5M3 11l2.5-5.5L1 3l3-1.5L7.5 5l5-1.5L14 5l-4 4-3.5 5.5L3 11z" stroke-linejoin="round"/>
+              <svg width="15" height="15" viewBox="0 0 15 15" :fill="form.isPinned ? '#006aff' : 'none'"
+                   stroke="currentColor" stroke-width="1.2">
+                <path d="M9.5 2.5L12 5M3 11l2.5-5.5L1 3l3-1.5L7.5 5l5-1.5L14 5l-4 4-3.5 5.5L3 11z"
+                      stroke-linejoin="round"/>
               </svg>
             </button>
             <button class="hdr-btn" @click="handleDelete" title="Delete">
@@ -50,21 +55,21 @@
           </select>
           <div class="color-dots">
             <button
-              v-for="c in colors"
-              :key="c.value"
-              class="cd"
-              :class="{ active: form.color === c.value }"
-              :style="{ backgroundColor: c.hex }"
-              @click="form.color = c.value; dirty = true"
+                v-for="c in colors"
+                :key="c.value"
+                class="cd"
+                :class="{ active: form.color === c.value }"
+                :style="{ backgroundColor: c.hex }"
+                @click="form.color = c.value; dirty = true"
             ></button>
           </div>
           <span class="time-label">{{ timeLabel }}</span>
         </div>
       </div>
       <MdEditor
-        v-model="form.content"
-        placeholder="Start writing in Markdown..."
-        @update:model-value="dirty = true"
+          v-model="form.content"
+          placeholder="Start writing in Markdown..."
+          @update:model-value="dirty = true"
       />
       <div v-if="hasConflict" class="conflict-banner">
         This note was modified on another device. Refresh the list to get the latest version.
@@ -82,37 +87,38 @@
       </div>
     </div>
     <ShareImageModal
-      :blob="shareBlob"
-      :filename="`${form.title || 'Untitled'}_${Date.now()}.png`"
-      @close="shareBlob = null"
+        :blob="shareBlob"
+        :filename="shareFilename"
+        @close="shareBlob = null"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, watch, computed, onMounted, onUnmounted } from 'vue'
-import { useNoteStore } from '../stores/note'
-import { marked } from 'marked'
-import { renderToImage, getColorsFromCSS } from '../utils/share-image-renderer'
+import {ref, reactive, watch, computed, onMounted, onUnmounted} from 'vue'
+import {useNoteStore} from '../stores/note'
+import {marked} from 'marked'
+import {renderToImage, getColorsFromCSS} from '../utils/share-image-renderer'
 import MdEditor from './MdEditor.vue'
 import ShareImageModal from './ShareImageModal.vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+
 dayjs.extend(relativeTime)
 
 const props = defineProps({
-  note: { type: Object, default: null },
+  note: {type: Object, default: null},
 })
 const emit = defineEmits(['updated', 'deleted'])
 const store = useNoteStore()
 
 const colors = [
-  { value: 'blue', hex: '#4A90D9' },
-  { value: 'green', hex: '#7EC050' },
-  { value: 'yellow', hex: '#F5C842' },
-  { value: 'orange', hex: '#F5A623' },
-  { value: 'red', hex: '#E05050' },
-  { value: 'gray', hex: '#9B9B9B' },
+  {value: 'blue', hex: '#4A90D9'},
+  {value: 'green', hex: '#7EC050'},
+  {value: 'yellow', hex: '#F5C842'},
+  {value: 'orange', hex: '#F5A623'},
+  {value: 'red', hex: '#E05050'},
+  {value: 'gray', hex: '#9B9B9B'},
 ]
 
 const form = reactive({
@@ -124,6 +130,7 @@ let lastSavedVersion = null
 let hasConflict = ref(false)
 const sharing = ref(false)
 const shareBlob = ref(null)
+const shareFilename = computed(() => `${form.title || 'Untitled'}_${Date.now()}.png`)
 
 const timeLabel = computed(() => {
   if (!props.note?.updatedAt) return ''
@@ -145,7 +152,7 @@ watch(() => props.note, (n) => {
   dirty.value = false
   hasConflict.value = false
   lastSavedVersion = n?.updatedAt || null
-}, { immediate: true })
+}, {immediate: true})
 
 watch(dirty, (val) => {
   if (val) {
@@ -304,6 +311,7 @@ onUnmounted(() => {
   outline: none;
   transition: color 0.3s ease;
 }
+
 .title-input::placeholder {
   color: rgba(0, 0, 0, 0.2);
 }
@@ -323,6 +331,7 @@ onUnmounted(() => {
   color: rgba(0, 0, 0, 0.3);
   background: transparent;
 }
+
 .hdr-btn:hover {
   background: rgba(0, 0, 0, 0.06);
   color: rgba(0, 0, 0, 0.6);
@@ -360,9 +369,11 @@ onUnmounted(() => {
   transition: all 0.15s;
   cursor: pointer;
 }
+
 .cd:hover {
   transform: scale(1.2);
 }
+
 .cd.active {
   border-color: currentColor;
   box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 20%, transparent);
@@ -438,6 +449,8 @@ onUnmounted(() => {
 }
 
 @keyframes share-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
