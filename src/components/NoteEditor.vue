@@ -24,6 +24,12 @@
             @input="dirty = true"
           />
           <div class="header-btns">
+            <button class="hdr-btn" @click="handleShare" :disabled="sharing" title="Share as image">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.2">
+                <circle cx="6" cy="6" r="2"/>
+                <path d="M10 9l3 3M8 4l4-3v6M13 15H2V6" stroke-linecap="round"/>
+              </svg>
+            </button>
             <button class="hdr-btn" @click="handlePin" :title="form.isPinned ? 'Unpin' : 'Pin'">
               <svg width="15" height="15" viewBox="0 0 15 15" :fill="form.isPinned ? '#006aff' : 'none'" stroke="currentColor" stroke-width="1.2">
                 <path d="M9.5 2.5L12 5M3 11l2.5-5.5L1 3l3-1.5L7.5 5l5-1.5L14 5l-4 4-3.5 5.5L3 11z" stroke-linejoin="round"/>
@@ -69,13 +75,27 @@
         <span v-if="dirty" class="unsaved">Unsaved</span>
       </div>
     </template>
+    <div v-if="sharing" class="share-loading">
+      <div class="share-loading-box">
+        <div class="share-spinner"></div>
+        <span>Generating image...</span>
+      </div>
+    </div>
+    <ShareImageModal
+      :blob="shareBlob"
+      :filename="`${form.title || 'Untitled'}_${Date.now()}.png`"
+      @close="shareBlob = null"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useNoteStore } from '../stores/note'
+import { marked } from 'marked'
+import { renderToImage, getColorsFromCSS } from '../utils/share-image-renderer'
 import MdEditor from './MdEditor.vue'
+import ShareImageModal from './ShareImageModal.vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 dayjs.extend(relativeTime)
@@ -102,6 +122,8 @@ const dirty = ref(false)
 let saveTimer = null
 let lastSavedVersion = null
 let hasConflict = ref(false)
+const sharing = ref(false)
+const shareBlob = ref(null)
 
 const timeLabel = computed(() => {
   if (!props.note?.updatedAt) return ''
@@ -166,6 +188,25 @@ async function autoSave(force = false) {
       }
       dirty.value = false
     }
+  }
+}
+
+async function handleShare() {
+  if (!props.note) return
+  sharing.value = true
+  try {
+    const html = marked.parse(form.content || '')
+    const colors = getColorsFromCSS()
+    const blob = await renderToImage(form.title, html, colors, {
+      width: 750, scale: 2,
+      watermark: '备忘录',
+      logoText: '分享来自 Open Note',
+    })
+    shareBlob.value = blob
+  } catch (e) {
+    console.error('share image failed:', e)
+  } finally {
+    sharing.value = false
   }
 }
 
@@ -362,5 +403,41 @@ onUnmounted(() => {
   font-size: 11px;
   color: #F5A623;
   font-weight: 500;
+}
+
+.share-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 1999;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-loading-box {
+  background: var(--sk-popup-bg, #fff);
+  border-radius: 12px;
+  padding: 24px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--sk-text, rgba(0, 0, 0, 0.6));
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.share-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--sk-border, #eee);
+  border-top-color: var(--sk-accent, #333);
+  border-radius: 50%;
+  animation: share-spin 0.8s linear infinite;
+}
+
+@keyframes share-spin {
+  to { transform: rotate(360deg); }
 }
 </style>
