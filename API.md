@@ -324,6 +324,81 @@ Permanently delete a note from trash.
 
 ---
 
+## Share Settings
+
+跨设备同步的用户分享设置。
+
+### GET /api/settings/share
+
+获取当前用户的分享页脚自定义文本。需要认证。
+
+Response:
+```json
+{
+  "code": 0,
+  "data": {
+    "logoText": "分享来自 Open Note",
+    "watermark": "备忘录"
+  }
+}
+```
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| logoText | string | `"分享来自 Open Note"` | 分享图片页脚第一行署名 |
+| watermark | string | `"备忘录"` | 分享图片页脚第二行水印 |
+
+### PUT /api/settings/share
+
+更新分享设置。仅需发送要变更的字段，未提供的保留原值。
+
+```
+PUT /api/settings/share
+Authorization: Bearer xxx
+Content-Type: application/json
+
+{ "logoText": "来自 allen 的分享" }
+```
+
+Response:
+```json
+{
+  "code": 0,
+  "data": {
+    "logoText": "来自 allen 的分享",
+    "watermark": "备忘录"
+  }
+}
+```
+
+### 前端集成
+
+```
+src/api/index.js
+  getShareSettingsAPI()          → GET  /settings/share
+  updateShareSettingsAPI(data)   → PUT  /settings/share
+
+src/config/shareSettings.js
+  getShareSettings()             → 调用 API，失败回退 localStorage
+  getShareSettingsCached()       → 同步读取 localStorage 缓存（即时展示用）
+  saveShareSettings(partial)     → 先写 localStorage，再调 API 持久化
+```
+
+### 客户端容错策略
+
+```
+读取：  API 成功 → 写入 localStorage 缓存 → 返回
+       API 失败 → 从 localStorage 读取 → 返回缓存值
+
+写入：  localStorage 即时更新（UI 即时响应）
+       API 调用后台静默同步
+       API 失败 → 本地缓存生效，下次成功时自动覆盖
+```
+
+> 修改设置后需**重新点击分享按钮**以重新生成图片，页脚文字才会更新。
+
+---
+
 ## Cross-Platform Notes
 
 | Feature | Implementation |

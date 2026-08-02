@@ -3,15 +3,34 @@
     <div class="share-modal">
       <div class="share-header">
         <h3>Preview</h3>
-        <button class="close-btn" @click="$emit('close')">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <line x1="5.5" y1="5.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="14.5" y1="5.5" x2="5.5" y2="14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </button>
+        <div class="share-header-actions">
+          <button class="icon-btn" @click="showSettings = !showSettings" :title="showSettings ? 'Hide settings' : 'Customize footer'">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+              <circle cx="8" cy="8" r="2.5"/>
+              <path d="M8 1.5v2M8 12.5v2M2.5 8h2M11.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="icon-btn" @click="$emit('close')">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <line x1="5.5" y1="5.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="14.5" y1="5.5" x2="5.5" y2="14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
       <div class="share-body">
         <img :src="imageUrl" alt="Preview" class="share-preview" />
+      </div>
+      <div v-if="showSettings" class="share-settings">
+        <label class="setting-row">
+          <span>Attribution</span>
+          <input v-model="form.logoText" class="setting-input" placeholder="分享来自..." @input="onSettingChange" />
+        </label>
+        <label class="setting-row">
+          <span>Watermark</span>
+          <input v-model="form.watermark" class="setting-input" placeholder="备忘录" @input="onSettingChange" />
+        </label>
+        <p class="setting-hint">Changes apply to the next share image.</p>
       </div>
       <div class="share-footer">
         <button class="btn-download" @click="handleDownload">Download</button>
@@ -22,14 +41,34 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { downloadImage } from '../utils/share-image-renderer'
+import { getShareSettings, getShareSettingsCached, saveShareSettings } from '../config/shareSettings'
 
 const props = defineProps({
   blob: { type: Object, default: null },
   filename: { type: String, default: '' },
 })
 defineEmits(['close'])
+
+const showSettings = ref(false)
+const form = reactive({ logoText: '', watermark: '' })
+
+onMounted(async () => {
+  const s = getShareSettingsCached()
+  form.logoText = s.logoText
+  form.watermark = s.watermark
+  const remote = await getShareSettings()
+  form.logoText = remote.logoText
+  form.watermark = remote.watermark
+})
+
+async function onSettingChange() {
+  await saveShareSettings({
+    logoText: form.logoText,
+    watermark: form.watermark,
+  })
+}
 
 const imageUrl = computed(() => {
   if (!props.blob) return ''
@@ -82,7 +121,12 @@ function handleDownload() {
   color: var(--sk-title, #000);
 }
 
-.close-btn {
+.share-header-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.icon-btn {
   width: 28px;
   height: 28px;
   display: flex;
@@ -93,8 +137,9 @@ function handleDownload() {
   background: transparent;
   transition: all 0.2s ease;
 }
-.close-btn:hover {
+.icon-btn:hover {
   background: var(--sk-hover-bg, rgba(0, 0, 0, 0.06));
+  color: var(--sk-icon-hover, rgba(0, 0, 0, 0.55));
 }
 
 .share-body {
@@ -109,6 +154,51 @@ function handleDownload() {
   max-width: 100%;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.share-settings {
+  padding: 12px 20px;
+  border-top: 1px solid var(--sk-border, rgba(0, 0, 0, 0.06));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.3s ease;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setting-row span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sk-text-secondary, rgba(0, 0, 0, 0.45));
+  white-space: nowrap;
+  min-width: 70px;
+}
+
+.setting-input {
+  flex: 1;
+  height: 32px;
+  border: 1px solid var(--sk-border, rgba(0, 0, 0, 0.12));
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 13px;
+  background: var(--sk-card-bg, #fff);
+  color: var(--sk-text, #000);
+  outline: none;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+.setting-input:focus {
+  border-color: var(--sk-accent, #006aff);
+}
+
+.setting-hint {
+  font-size: 11px;
+  color: var(--sk-text-muted, rgba(0, 0, 0, 0.25));
+  margin: 0;
 }
 
 .share-footer {

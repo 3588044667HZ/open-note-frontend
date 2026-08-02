@@ -186,6 +186,12 @@ function autoScrollCursor(ta) {
     ta.scrollTop = cursorTop - ta.clientHeight + margin + lineH
   }
 }
+
+defineExpose({
+  focus() {
+    nextTick(() => textareaRef.value?.focus())
+  },
+})
 </script>
 
 <style scoped>
