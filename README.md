@@ -1,9 +1,19 @@
 # open-note 一个开源轻量化便签实现
+
+**本项目需配合后端使用**
+
+**后端 https://github.com/3588044667HZ/open-note-server**
+
 ## 登录
+
 <img width="1920" height="891" alt="image" src="https://github.com/user-attachments/assets/374e8b08-a4b1-41c3-83c5-33f18107a48c" />
+
 **注意：仅支持内网或tailscale部署，因为全部明文传输。**
+
 **注意，本项目仍在积极开发，所以可能会有breaking changes**
+
 ## 开始使用
+
 <img width="1920" height="919" alt="image" src="https://github.com/user-attachments/assets/a09b1df1-77b4-427b-9c41-3c52aa2f97cd" />
 
 <img width="1912" height="922" alt="image" src="https://github.com/user-attachments/assets/ce3a6444-318e-4a9c-8d79-a00c59d82ab3" />
