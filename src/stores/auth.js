@@ -46,8 +46,13 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const res = await api.getMe()
       user.value = res.data
-    } catch {
-      logout()
+      return true
+    } catch (e) {
+      // 仅 401（token 无效且 refresh 失败）时登出；网络错误保留 token 等待重试
+      if (e?.response?.status === 401) {
+        logout()
+      }
+      return false
     }
   }
 
