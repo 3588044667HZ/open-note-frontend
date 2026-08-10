@@ -41,10 +41,23 @@ const COLOR_TOKENS_DARK = {
   '--highlight-green':  'rgba(104, 209, 121, 0.2)',
 }
 
+const LEGACY_VAR_ALIAS = {
+  '--blueColor': '--color-blue',
+  '--redColor': '--color-red',
+  '--greenColor': '--color-green',
+  '--orangeColor': '--color-orange',
+  '--yellowColor': '--color-yellow',
+  '--grayColor': '--color-gray',
+}
+
 export function applyColorTokens(isDark) {
   const tokens = isDark ? COLOR_TOKENS_DARK : COLOR_TOKENS_LIGHT
   const root = document.documentElement
   Object.entries(tokens).forEach(([key, value]) => {
     root.style.setProperty(key, value)
+  })
+  // 兼容旧版数据（<span style="color: var(--orangeColor)"> 等大写驼峰变量名）
+  Object.entries(LEGACY_VAR_ALIAS).forEach(([legacy, current]) => {
+    root.style.setProperty(legacy, root.style.getPropertyValue(current))
   })
 }

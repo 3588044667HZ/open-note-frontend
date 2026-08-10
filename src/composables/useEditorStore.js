@@ -42,6 +42,21 @@ export function useEditorStore() {
   function applyFormat(className, category) {
     if (!editor) return
 
+    console.log('[format] applyFormat called:', { className, category, selection: editor.state.selection.empty })
+
+    // None：恢复默认透明强调 / 取消下划线
+    if (className === 'none') {
+      if (category === 'text' || category === 'highlight') {
+        editor.chain().focus().unsetFormat((c) => c.startsWith('color_') || c.startsWith('highlight_')).run()
+      } else {
+        editor.chain().focus().unsetColoredUnderline().run()
+      }
+      console.log('[format] → none (clear format)')
+      activeFormat.value = null
+      activeTab.value = category
+      return
+    }
+
     if (category === 'text' || category === 'highlight') {
       if (className === 'color_default') {
         editor.chain().focus().unsetFormat((c) => c.startsWith('color_') || c.startsWith('highlight_')).run()
@@ -52,9 +67,19 @@ export function useEditorStore() {
       const parts = className.split('_')
       const type = category === 'wavy' ? 'wavy' : 'solid'
       const color = parts.slice(2).join('_')
-      editor.chain().focus().toggleColoredUnderline({ type, color }).run()
+      // 已激活相同 type+color → 取消；否则 setColoredUnderline（内部 removeMark+addMark 自动换色）
+      const isActive = editor.isActive('coloredUnderline', { type, color })
+      console.log('[format] underline branch:', { type, color, isActive })
+      if (isActive) {
+        editor.chain().focus().unsetColoredUnderline().run()
+        console.log('[format] → unset (same color active)')
+      } else {
+        editor.chain().focus().setColoredUnderline({ type, color }).run()
+        console.log('[format] → set (replace color)', { type, color })
+      }
     }
 
+    console.log('[format] after apply, getHTML:', editor.getHTML())
     activeFormat.value = className
     activeTab.value = category
   }

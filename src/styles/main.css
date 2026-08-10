@@ -207,6 +207,19 @@ input, textarea {
 .color-item:hover { background: var(--sk-hover-bg, rgba(0,0,0,0.04)); }
 .color-item.active { background: var(--sk-active-bg, rgba(0,106,255,0.06)); }
 .color-dot { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
+.none-dot {
+  background: transparent;
+  position: relative;
+  border-color: var(--sk-text-muted, rgba(0,0,0,0.25));
+}
+.none-dot::after {
+  content: '';
+  position: absolute;
+  left: 2px; right: 2px; top: 50%;
+  height: 1.5px;
+  background: var(--sk-text-muted, rgba(0,0,0,0.35));
+  transform: rotate(-45deg);
+}
 .color-label { font-size: 9px; text-transform: capitalize; }
 .color-indicator { font-weight: 700; font-size: 13px; }
 

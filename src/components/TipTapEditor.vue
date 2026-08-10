@@ -33,9 +33,10 @@
           </div>
           <div class="color-options">
             <button v-for="opt in currentOptions" :key="opt.className"
-              class="color-item" :class="{ active: store.activeFormat === opt.className }"
+              class="color-item" :class="{ active: opt.isNone ? !store.activeFormat : store.activeFormat === opt.className }"
               @click="store.applyFormat(opt.className, store.activeTab); showColorPicker = false">
-              <span class="color-dot" :style="opt.style" />
+              <span v-if="opt.isNone" class="color-dot none-dot"></span>
+              <span v-else class="color-dot" :style="opt.style" />
               <span class="color-label">{{ opt.label }}</span>
             </button>
           </div>
@@ -107,27 +108,29 @@ const colorTabs = [
   { key: 'wavy', label: 'W' },
 ]
 
+const NONE_OPTION = { className: 'none', label: 'None', isNone: true }
+
 const currentOptions = computed(() => {
   switch (store.activeTab) {
     case 'text':
-      return Object.entries(TEXT_COLOR_MAP).map(([cls, color]) => ({
+      return [NONE_OPTION, ...Object.entries(TEXT_COLOR_MAP).map(([cls, color]) => ({
         className: cls, label: cls.replace('color_', ''), style: { backgroundColor: color },
-      }))
+      }))]
     case 'highlight':
-      return Object.entries(HIGHLIGHT_COLOR_MAP).map(([cls, color]) => ({
+      return [NONE_OPTION, ...Object.entries(HIGHLIGHT_COLOR_MAP).map(([cls, color]) => ({
         className: `highlight_${cls.replace('color_', '')}`, label: cls.replace('color_', ''),
         style: { backgroundColor: color },
-      }))
+      }))]
     case 'underline':
-      return Object.entries(TEXT_COLOR_MAP).map(([cls, color]) => ({
+      return [NONE_OPTION, ...Object.entries(TEXT_COLOR_MAP).map(([cls, color]) => ({
         className: `underline_solid_${cls}`, label: cls.replace('color_', ''),
         style: { borderBottom: `2px solid ${color}`, width: '16px', height: '12px' },
-      }))
+      }))]
     case 'wavy':
-      return Object.entries(TEXT_COLOR_MAP).map(([cls, color]) => ({
+      return [NONE_OPTION, ...Object.entries(TEXT_COLOR_MAP).map(([cls, color]) => ({
         className: `underline_wavy_${cls}`, label: cls.replace('color_', ''),
         style: { borderBottom: `2px solid ${color}`, width: '16px', height: '12px' },
-      }))
+      }))]
     default: return []
   }
 })
@@ -162,6 +165,7 @@ const editor = useEditor({
     },
   },
   onUpdate: ({ editor }) => {
+    console.log('[tiptap] onUpdate → getHTML:', editor.getHTML())
     emit('update:modelValue', editor.getHTML())
   },
   onSelectionUpdate: () => {
@@ -179,6 +183,8 @@ watch(() => editor.value, (ed) => { if (ed) store.bind(ed) })
 watch(() => props.modelValue, (html) => {
   const ed = editor.value
   if (ed && html !== ed.getHTML()) {
+    console.log('[tiptap] modelValue watch → setContent (REWRITE):', html)
+    console.log('[tiptap]   current getHTML:', ed.getHTML())
     ed.commands.setContent(html || '', { emitUpdate: false })
   }
 })

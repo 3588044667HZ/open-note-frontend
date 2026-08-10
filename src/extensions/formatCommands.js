@@ -5,8 +5,21 @@ export const FormatCommands = Extension.create({
 
   addCommands() {
     return {
-      setFormat: (attrs) => ({ commands }) => {
-        return commands.setMark('textStyle', attrs)
+      setFormat: (attrs) => ({ state, tr, dispatch }) => {
+        const markType = state.schema.marks.textStyle
+        if (!markType) return false
+        const { from, to } = state.selection
+        const mark = markType.create(attrs)
+        if (from === to) {
+          tr.removeStoredMark(markType)
+          tr.addStoredMark(mark)
+        } else {
+          // addMark 不会替换已存在 mark 的 attrs，必须先移除再添加才能换色
+          tr.removeMark(from, to, markType)
+          tr.addMark(from, to, mark)
+        }
+        if (dispatch) dispatch(tr)
+        return true
       },
       unsetFormat: (filter) => ({ state, tr, dispatch }) => {
         const markType = state.schema.marks.textStyle
