@@ -192,9 +192,12 @@ input, textarea {
 }
 .color-tabs { display: flex; gap: 2px; padding: 0 4px 4px; border-bottom: 1px solid var(--sk-border, rgba(0,0,0,0.06)); margin-bottom: 4px; }
 .color-tab {
-  padding: 3px 8px; border-radius: 4px; font-size: 11px;
+  padding: 4px 5px; border-radius: 4px; font-size: 11px;
   color: var(--sk-text-secondary, rgba(0,0,0,0.4)); background: transparent; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  min-width: 30px;
 }
+.color-tab svg { display: block; }
 .color-tab.active { background: var(--sk-input-bg, rgba(0,0,0,0.06)); color: var(--sk-text, #000); font-weight: 700; }
 .color-options { display: flex; gap: 3px; flex-wrap: wrap; padding: 0 4px; }
 .color-item {
