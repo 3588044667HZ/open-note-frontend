@@ -43,3 +43,12 @@ export async function saveShareSettings(partial) {
     return merged
   }
 }
+
+export async function forceSyncShareSettings() {
+  const local = getShareSettingsCached()
+  const res = await api.updateShareSettingsAPI(local)
+  const data = res.data || {}
+  const updated = { ...local, ...data }
+  cacheLocal(updated)
+  return updated
+}

@@ -66,10 +66,10 @@
           <span class="time-label">{{ timeLabel }}</span>
         </div>
       </div>
-      <MdEditor
+      <TipTapEditor
           ref="mdEditorRef"
           v-model="form.content"
-          placeholder="Start writing in Markdown..."
+          placeholder="Start writing..."
           @update:model-value="dirty = true"
       />
       <div v-if="hasConflict" class="conflict-banner">
@@ -101,7 +101,7 @@ import {useNoteStore} from '../stores/note'
 import {marked} from 'marked'
 import {renderToImage, getColorsFromCSS} from '../utils/share-image-renderer'
 import {getShareSettings} from '../config/shareSettings'
-import MdEditor from './MdEditor.vue'
+import TipTapEditor from './TipTapEditor.vue'
 import ShareImageModal from './ShareImageModal.vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'

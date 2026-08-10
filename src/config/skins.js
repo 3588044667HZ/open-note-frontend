@@ -1,3 +1,5 @@
+import { applyColorTokens } from './colorTokens'
+
 const DEFAULT_TEXT_COLOR = '#E6000000'
 
 function parseARGB(argb) {
@@ -172,6 +174,8 @@ export function computeCSSVariables(skin) {
   const title = skin.titleColor
   const cardBg = skin.cardBackground
   const timeCol = skin.timeColor
+
+  applyColorTokens(!isLightColor(contentBg))
 
   return {
     '--sk-content-bg': contentBg,

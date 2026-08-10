@@ -30,6 +30,16 @@
           <span>Watermark</span>
           <input v-model="form.watermark" class="setting-input" placeholder="备忘录" @input="onSettingChange" />
         </label>
+        <div class="setting-actions">
+          <button class="btn-sync" :disabled="syncStatus === 'syncing'" @click="handleSync">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" :class="{ spinning: syncStatus === 'syncing' }">
+              <path d="M2 8a6 6 0 0111.3-2.8M14 8a6 6 0 01-11.3 2.8" stroke-linecap="round"/>
+              <polyline points="10,1 13.7,2.3 12.3,6" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="6,15 2.3,13.7 3.7,10" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>{{ syncLabel }}</span>
+          </button>
+        </div>
         <p class="setting-hint">Changes apply to the next share image.</p>
       </div>
       <div class="share-footer">
@@ -43,7 +53,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { downloadImage } from '../utils/share-image-renderer'
-import { getShareSettings, getShareSettingsCached, saveShareSettings } from '../config/shareSettings'
+import { getShareSettings, getShareSettingsCached, saveShareSettings, forceSyncShareSettings } from '../config/shareSettings'
 
 const props = defineProps({
   blob: { type: Object, default: null },
@@ -53,6 +63,12 @@ defineEmits(['close'])
 
 const showSettings = ref(false)
 const form = reactive({ logoText: '', watermark: '' })
+const syncStatus = ref('idle')
+
+const syncLabel = computed(() => {
+  const labels = { idle: 'Sync', syncing: 'Syncing...', done: 'Synced', error: 'Error' }
+  return labels[syncStatus.value] || 'Sync'
+})
 
 onMounted(async () => {
   const s = getShareSettingsCached()
@@ -68,6 +84,18 @@ async function onSettingChange() {
     logoText: form.logoText,
     watermark: form.watermark,
   })
+}
+
+async function handleSync() {
+  syncStatus.value = 'syncing'
+  try {
+    await forceSyncShareSettings()
+    syncStatus.value = 'done'
+    setTimeout(() => { if (syncStatus.value === 'done') syncStatus.value = 'idle' }, 2000)
+  } catch {
+    syncStatus.value = 'error'
+    setTimeout(() => { if (syncStatus.value === 'error') syncStatus.value = 'idle' }, 3000)
+  }
 }
 
 const imageUrl = computed(() => {
@@ -193,6 +221,40 @@ function handleDownload() {
 }
 .setting-input:focus {
   border-color: var(--sk-accent, #006aff);
+}
+
+.setting-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-sync {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--sk-text-secondary, rgba(0, 0, 0, 0.45));
+  background: var(--sk-input-bg, rgba(0, 0, 0, 0.04));
+  transition: all 0.2s ease;
+}
+.btn-sync:hover:not(:disabled) {
+  color: var(--sk-accent, #006aff);
+  background: var(--sk-active-bg, rgba(0, 106, 255, 0.06));
+}
+.btn-sync:disabled {
+  opacity: 0.6;
+}
+
+.spinning {
+  animation: sync-spin 1s linear infinite;
+}
+
+@keyframes sync-spin {
+  to { transform: rotate(360deg); }
 }
 
 .setting-hint {
