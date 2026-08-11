@@ -23,6 +23,7 @@ export const HIGHLIGHT_COLOR_MAP = {
   [COLOR_RED]:    'rgba(255,173,190,0.3)',
   [COLOR_BLUE]:   'rgba(85,184,241,0.3)',
   [COLOR_GREEN]:  'rgba(104,209,121,0.3)',
+  [COLOR_ORANGE]: 'rgba(225,132,19,0.3)',
 }
 
 export function useEditorStore() {

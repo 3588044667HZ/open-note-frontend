@@ -144,8 +144,40 @@ const formatIconColor = computed(() => {
   return undefined
 })
 
+const LEGACY_COLOR_MAP = {
+  orange: 'orange', red: 'red', green: 'green',
+  blue: 'blue', yellow: 'yellow', gray: 'gray',
+}
+
+/**
+ * 旧版数据归一化：<span style="color: var(--orangeColor)"> → <span class="color_orange">
+ * 旧系统颜色存 style 属性，新系统存 class；统一为 class 后清除/换色逻辑行为一致
+ */
+function normalizeLegacyColors(html) {
+  if (!html?.includes('var(--')) return html
+  // 先处理带 class 的（合并颜色）
+  let out = html.replace(
+    /<span\s+class="([^"]*)"\s+style="color:\s*var\(--(\w+)Color\)[^"]*">/g,
+    (m, cls, c) => {
+      const name = LEGACY_COLOR_MAP[c.toLowerCase()]
+      if (!name) return m
+      const newCls = cls.replace(/\bcolor_\w+/g, `color_${name}`) || `color_${name}`
+      return `<span class="${newCls}">`
+    }
+  )
+  // 再处理纯 style 的
+  out = out.replace(
+    /<span\s+style="color:\s*var\(--(\w+)Color\)[^"]*">/g,
+    (m, c) => {
+      const name = LEGACY_COLOR_MAP[c.toLowerCase()]
+      return name ? `<span class="color_${name}">` : m
+    }
+  )
+  return out
+}
+
 const initialContent = props.modelValue?.includes('<')
-  ? props.modelValue
+  ? normalizeLegacyColors(props.modelValue)
   : marked.parse(props.modelValue || '')
 
 const editor = useEditor({
@@ -182,10 +214,11 @@ watch(() => editor.value, (ed) => { if (ed) store.bind(ed) })
 
 watch(() => props.modelValue, (html) => {
   const ed = editor.value
-  if (ed && html !== ed.getHTML()) {
-    console.log('[tiptap] modelValue watch → setContent (REWRITE):', html)
+  const normalized = normalizeLegacyColors(html)
+  if (ed && normalized !== ed.getHTML()) {
+    console.log('[tiptap] modelValue watch → setContent (REWRITE):', normalized)
     console.log('[tiptap]   current getHTML:', ed.getHTML())
-    ed.commands.setContent(html || '', { emitUpdate: false })
+    ed.commands.setContent(normalized || '', { emitUpdate: false })
   }
 })
 

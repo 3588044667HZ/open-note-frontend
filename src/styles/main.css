@@ -71,6 +71,7 @@ input, textarea {
 .highlight_red    { background-color: var(--highlight-red, rgba(255,173,190,0.3)); }
 .highlight_blue   { background-color: var(--highlight-blue, rgba(85,184,241,0.3)); }
 .highlight_green  { background-color: var(--highlight-green, rgba(104,209,121,0.3)); }
+.highlight_orange { background-color: var(--highlight-orange, rgba(225,132,19,0.3)); }
 
 .underline_solid_color_default { text-decoration: underline; }
 .underline_solid_color_gray    { text-decoration-color: var(--color-gray); text-decoration-line: underline; }
@@ -257,6 +258,7 @@ input, textarea {
 .ProseMirror .highlight_red      { background-color: var(--highlight-red, rgba(255,173,190,0.3)); }
 .ProseMirror .highlight_blue     { background-color: var(--highlight-blue, rgba(85,184,241,0.3)); }
 .ProseMirror .highlight_green    { background-color: var(--highlight-green, rgba(104,209,121,0.3)); }
+.ProseMirror .highlight_orange   { background-color: var(--highlight-orange, rgba(225,132,19,0.3)); }
 
 .ProseMirror .underline_solid_color_default { text-decoration-line: underline; text-decoration-color: var(--color-default, rgba(0,0,0,0.8)); }
 .ProseMirror .underline_solid_color_red     { text-decoration-line: underline; text-decoration-color: var(--color-red); }

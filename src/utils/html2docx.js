@@ -5,16 +5,54 @@
 
 const NS_W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 const NS_R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
+const NS_WP = 'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing'
+const NS_A = 'http://schemas.openxmlformats.org/drawingml/2006/main'
+const NS_PIC = 'http://schemas.openxmlformats.org/drawingml/2006/picture'
+const NS_R_PKG = 'http://schemas.openxmlformats.org/package/2006/relationships'
 
-const HEADING_LEVELS = { H1: '2', H2: '3', H3: '4', H4: '5' }
+const HEADING_LEVELS = { H1: 'Heading1', H2: 'Heading2', H3: 'Heading3', H4: 'Heading4' }
+
+// Word w:highlight 枚举白名单（不支持的色名忽略，避免文件损坏）
+const HIGHLIGHT_WORD_VAL = {
+  yellow: 'yellow', red: 'red', blue: 'blue', green: 'green',
+  cyan: 'cyan', magenta: 'magenta', black: 'black', white: 'white',
+  gray: 'lightGray', orange: 'yellow',
+}
+
+// ──── 链接收集状态（每次转换重置） ────
+let _links = []
+let _linkCount = 0
+const _linkMap = {}
+
+function resetState() {
+  _links = []
+  _linkCount = 0
+  imgCounter = 0
+  for (const k in _linkMap) delete _linkMap[k]
+}
+
+function registerLink(href) {
+  if (!href) return ''
+  if (_linkMap[href]) return _linkMap[href]
+  _linkCount++
+  const rid = `rIdLink${_linkCount}`
+  _linkMap[href] = rid
+  _links.push({ rid, href })
+  return rid
+}
 
 export function htmlToWordML(html) {
+  resetState()
   const parser = new DOMParser()
   const doc = parser.parseFromString(html, 'text/html')
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
-    `<w:document xmlns:w="${NS_W}" xmlns:r="${NS_R}"><w:body>` +
-    captureBody(doc.body) +
-    `</w:body></w:document>`
+  const bodyXml = captureBody(doc.body)
+  return {
+    documentXml: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+      `<w:document xmlns:w="${NS_W}" xmlns:r="${NS_R}" ` +
+      `xmlns:wp="${NS_WP}" xmlns:a="${NS_A}" xmlns:pic="${NS_PIC}">` +
+      `<w:body>${bodyXml}</w:body></w:document>`,
+    links: _links,
+  }
 }
 
 function captureBody(el) {
@@ -50,7 +88,7 @@ function nodeToXML(node) {
       return `<w:r><w:rPr><w:i/></w:rPr>${childrenXML(node)}</w:r>`
 
     case 'u':
-      return `<w:r><w:rPr><w:u w:val="single"/></w:rPr>${childrenXML(node)}</w:r>`
+      return underlineToRun(node)
 
     case 's': case 'del':
       return `<w:r><w:rPr><w:strike/></w:rPr>${childrenXML(node)}</w:r>`
@@ -109,6 +147,12 @@ const HIGHLIGHT_MAP = {
   'rgba(85,184,241': 'blue', 'rgba(104,209,121': 'green',
 }
 
+/** 归一化高亮色名为 Word 合法枚举，未知返回 null（忽略高亮） */
+function safeHighlightVal(name) {
+  if (!name) return null
+  return HIGHLIGHT_WORD_VAL[name.toLowerCase()] || null
+}
+
 function spanToRun(node) {
   let rPr = ''
   const style = (node.getAttribute && node.getAttribute('style')) || ''
@@ -129,13 +173,16 @@ function spanToRun(node) {
   // 高亮：class 中 highlight_xxx 或 style 中 background
   const bgMatch = style.match(/background(?:-color)?\s*:\s*([^;]+)/)
   if (bgMatch) {
-    const val = HIGHLIGHT_MAP[Object.keys(HIGHLIGHT_MAP).find(k => bgMatch[1].includes(k))] ||
+    const val = safeHighlightVal(
+      HIGHLIGHT_MAP[Object.keys(HIGHLIGHT_MAP).find(k => bgMatch[1].includes(k))] ||
       highlightFromColor(bgMatch[1].trim())
+    )
     if (val) rPr += `<w:highlight w:val="${val}"/>`
   }
   const clsHl = cls.match(/\bhighlight_(\w+)/)
   if (clsHl && !rPr.includes('<w:highlight')) {
-    rPr += `<w:highlight w:val="${clsHl[1]}"/>`
+    const val = safeHighlightVal(clsHl[1])
+    if (val) rPr += `<w:highlight w:val="${val}"/>`
   }
 
   if (style.includes('font-weight:bold') || style.includes('font-weight:700'))
@@ -151,7 +198,35 @@ function spanToRun(node) {
 
 const CSS_VAR_HEX = {
   red: 'D54933', orange: 'E18413', yellow: 'DB9A00',
-  green: '2C8848', blue: '3258C5', gray: '424242', default: '000000',
+  green: '2C8848', blue: '3258C5', gray: '595959', default: '000000',
+}
+
+/**
+ * <u class="underline_solid_color_red"> 或 <u class="underline_wavy_color_green">
+ * Word 原生支持 wave 下划线，无需 SVG
+ */
+function underlineToRun(node) {
+  let rPr = ''
+  const cls = (node.getAttribute && node.getAttribute('class')) || ''
+  const style = (node.getAttribute && node.getAttribute('style')) || ''
+
+  const isWavy = cls.includes('underline_wavy_')
+  rPr += isWavy ? '<w:u w:val="wave"/>' : '<w:u w:val="single"/>'
+
+  // 颜色：class 中 color_xxx 或 style 中 var(--color-xxx)
+  const colorKey = (cls.match(/underline_(?:solid|wavy)_(\w+)/) || [])[1]
+  const varMatch = style.match(/var\((--[\w-]+)\)/)
+  let hex = ''
+  if (colorKey) hex = CSS_VAR_HEX[colorKey] || ''
+  if (!hex && varMatch) {
+    const key = varMatch[1].replace('--color-', '').replace('--', '')
+    hex = CSS_VAR_HEX[key] || ''
+  }
+  if (hex) rPr += `<w:color w:val="${hex}"/>`
+
+  if (style.includes('font-weight:bold')) rPr += '<w:b/>'
+
+  return `<w:r><w:rPr>${rPr}</w:rPr>${childrenXML(node)}</w:r>`
 }
 
 function highlightFromColor(color) {
@@ -167,7 +242,8 @@ function highlightFromColor(color) {
 
 function linkToRun(node) {
   const href = node.getAttribute('href') || ''
-  return `<w:hyperlink r:id="${xmlEscape(href)}">` +
+  const rid = registerLink(href)
+  return `<w:hyperlink r:id="${rid}">` +
     `<w:r><w:rPr><w:color w:val="1A73E8"/><w:u w:val="single"/></w:rPr>` +
     `${childrenXML(node)}</w:r></w:hyperlink>`
 }
@@ -182,10 +258,17 @@ function imageToDrawing(node) {
   const emuH = h * 9525
   return `<w:p><w:r><w:drawing><wp:inline>` +
     `<wp:extent cx="${emuW}" cy="${emuH}"/>` +
+    `<wp:effectExtent l="0" t="0" r="0" b="0"/>` +
     `<wp:docPr id="${imgCounter}" name="${rid}"/>` +
     `<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">` +
-    `<pic:pic><pic:nvPicPr/><pic:blipFill><a:blip r:embed="${rid}"/></pic:blipFill>` +
-    `<pic:spPr><a:xfrm><a:ext cx="${emuW}" cy="${emuH}"/></a:xfrm></pic:spPr>` +
+    `<pic:pic>` +
+    `<pic:nvPicPr>` +
+    `<pic:cNvPr id="${imgCounter}" name="${rid}"/>` +
+    `<pic:cNvPicPr/>` +
+    `</pic:nvPicPr>` +
+    `<pic:blipFill><a:blip r:embed="${rid}"/></pic:blipFill>` +
+    `<pic:spPr><a:xfrm><a:ext cx="${emuW}" cy="${emuH}"/></a:xfrm>` +
+    `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>` +
     `</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`
 }
 
@@ -217,8 +300,25 @@ function xmlEscape(s) {
 
 // ──── DOCX ZIP 打包 ────
 
+function buildStylesXml() {
+  const heading = (id, name, size) =>
+    `<w:style w:type="paragraph" w:styleId="${id}">` +
+    `<w:name w:val="${name}"/><w:basedOn w:val="Normal"/>` +
+    `<w:pPr><w:keepNext/><w:keepLines/><w:spacing w:before="240" w:after="72"/></w:pPr>` +
+    `<w:rPr><w:b/><w:sz w:val="${size}"/><w:szCs w:val="${size}"/></w:rPr></w:style>`
+  return `<?xml version="1.0"?>` +
+    `<w:styles xmlns:w="${NS_W}">` +
+    `<w:style w:type="paragraph" w:default="1" w:styleId="Normal">` +
+    `<w:name w:val="Normal"/><w:rPr><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:style>` +
+    heading('Heading1', 'heading 1', 32) +
+    heading('Heading2', 'heading 2', 28) +
+    heading('Heading3', 'heading 3', 24) +
+    heading('Heading4', 'heading 4', 22) +
+    `</w:styles>`
+}
+
 async function htmlToDocx(html, images = []) {
-  const documentXml = htmlToWordML(html)
+  const { documentXml, links } = htmlToWordML(html)
   const JSZip = (await import('jszip')).default
   const zip = new JSZip()
 
@@ -231,8 +331,12 @@ async function htmlToDocx(html, images = []) {
     `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>` +
     `<Default Extension="xml" ContentType="application/xml"/>` +
     `<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>` +
+    `<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>` +
     imageTypes + `</Types>`
   )
+
+  // word/styles.xml — 标题样式定义（pStyle 引用 Heading1-4 必需）
+  zip.file('word/styles.xml', buildStylesXml())
 
   zip.file('_rels/.rels',
     `<?xml version="1.0"?>` +
@@ -244,13 +348,18 @@ async function htmlToDocx(html, images = []) {
   zip.file('word/document.xml', documentXml)
 
   let rels = `<?xml version="1.0"?>` +
-    `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`
+    `<Relationships xmlns="${NS_R_PKG}">`
   for (let i = 0; i < images.length; i++) {
     const name = `image${i + 1}.${images[i].ext}`
     rels += `<Relationship Id="rIdImg${i + 1}" ` +
       `Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" ` +
       `Target="media/${name}"/>`
     zip.file(`word/media/${name}`, images[i].blob)
+  }
+  for (const { rid, href } of links) {
+    rels += `<Relationship Id="${rid}" ` +
+      `Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" ` +
+      `Target="${xmlEscape(href)}" TargetMode="External"/>`
   }
   rels += `</Relationships>`
   zip.file('word/_rels/document.xml.rels', rels)

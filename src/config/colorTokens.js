@@ -26,6 +26,7 @@ const COLOR_TOKENS_LIGHT = {
   '--highlight-red':    'rgba(255, 173, 190, 0.3)',
   '--highlight-blue':   'rgba(85, 184, 241, 0.3)',
   '--highlight-green':  'rgba(104, 209, 121, 0.3)',
+  '--highlight-orange': 'rgba(225, 132, 19, 0.3)',
 }
 
 const COLOR_TOKENS_DARK = {
@@ -39,6 +40,7 @@ const COLOR_TOKENS_DARK = {
   '--highlight-red':    'rgba(255, 173, 190, 0.2)',
   '--highlight-blue':   'rgba(85, 184, 241, 0.2)',
   '--highlight-green':  'rgba(104, 209, 121, 0.2)',
+  '--highlight-orange': 'rgba(225, 132, 19, 0.2)',
 }
 
 const LEGACY_VAR_ALIAS = {
