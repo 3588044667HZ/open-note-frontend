@@ -108,7 +108,15 @@ function onNoteDeleted(id) {
 
 async function onLoggedIn() {
   await authStore.fetchMe()
-  await Promise.all([
+  await loadNotesData()
+  // 数据未加载成功时自动重试一次（网络抖动/超时场景）
+  if (store.notes.length === 0 && store.notebooks.length === 0 && !store.loading) {
+    await loadNotesData()
+  }
+}
+
+async function loadNotesData() {
+  await Promise.allSettled([
     store.fetchNotebooks(),
     store.fetchNotes(),
   ])

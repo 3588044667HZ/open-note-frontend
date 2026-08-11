@@ -15,14 +15,14 @@
       <div class="color-accent" :style="{ backgroundColor: currentColorHex }"></div>
       <div class="editor-header">
         <div class="header-row-1">
-          <input
-              v-model="form.title"
-              type="text"
-              class="title-input"
-              placeholder="Title"
-              maxlength="100"
-              @input="dirty = true"
-          />
+          <h1
+            ref="titleEl"
+            class="title-area"
+            contenteditable="true"
+            data-placeholder="Title"
+            @input="onTitleInput"
+            @keydown.enter.prevent="focusContent"
+          ></h1>
           <div class="header-btns">
             <button class="hdr-btn" @click="handleShare" :disabled="sharing" title="Share as image">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -66,9 +66,10 @@
           <span class="time-label">{{ timeLabel }}</span>
         </div>
       </div>
-      <MdEditor
+      <TipTapEditor
+          ref="mdEditorRef"
           v-model="form.content"
-          placeholder="Start writing in Markdown..."
+          placeholder="Start writing..."
           @update:model-value="dirty = true"
       />
       <div v-if="hasConflict" class="conflict-banner">
@@ -95,11 +96,12 @@
 </template>
 
 <script setup>
-import {ref, reactive, watch, computed, onMounted, onUnmounted} from 'vue'
+import {ref, reactive, watch, computed, nextTick, onMounted, onUnmounted} from 'vue'
 import {useNoteStore} from '../stores/note'
 import {marked} from 'marked'
 import {renderToImage, getColorsFromCSS} from '../utils/share-image-renderer'
-import MdEditor from './MdEditor.vue'
+import {getShareSettings} from '../config/shareSettings'
+import TipTapEditor from './TipTapEditor.vue'
 import ShareImageModal from './ShareImageModal.vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -127,6 +129,8 @@ const form = reactive({
 const dirty = ref(false)
 let saveTimer = null
 let lastSavedVersion = null
+const titleEl = ref(null)
+const mdEditorRef = ref(null)
 let hasConflict = ref(false)
 const sharing = ref(false)
 const shareBlob = ref(null)
@@ -152,6 +156,9 @@ watch(() => props.note, (n) => {
   dirty.value = false
   hasConflict.value = false
   lastSavedVersion = n?.updatedAt || null
+  nextTick(() => {
+    if (titleEl.value) titleEl.value.textContent = n?.title || ''
+  })
 }, {immediate: true})
 
 watch(dirty, (val) => {
@@ -191,11 +198,23 @@ async function autoSave(force = false) {
           form.isPinned = latest.isPinned || false
           lastSavedVersion = latest.updatedAt
           hasConflict.value = false
+          nextTick(() => {
+            if (titleEl.value) titleEl.value.textContent = latest.title || ''
+          })
         }
       }
       dirty.value = false
     }
   }
+}
+
+function onTitleInput(e) {
+  form.title = e.target.textContent || ''
+  dirty.value = true
+}
+
+function focusContent() {
+  mdEditorRef.value?.focus()
 }
 
 async function handleShare() {
@@ -204,10 +223,11 @@ async function handleShare() {
   try {
     const html = marked.parse(form.content || '')
     const colors = getColorsFromCSS()
+    const settings = await getShareSettings()
     const blob = await renderToImage(form.title, html, colors, {
       width: 750, scale: 2,
-      watermark: '备忘录',
-      logoText: '分享来自 Open Note',
+      watermark: settings.watermark,
+      logoText: settings.logoText,
     })
     shareBlob.value = blob
   } catch (e) {
@@ -300,7 +320,7 @@ onUnmounted(() => {
   gap: 10px;
 }
 
-.title-input {
+.title-area {
   flex: 1;
   font-size: var(--sk-title-font-size, 24px);
   font-weight: 650;
@@ -308,13 +328,17 @@ onUnmounted(() => {
   color: var(--sk-title, rgba(0, 0, 0, 0.9));
   background: transparent;
   padding: 0;
-  border: none;
   outline: none;
+  min-height: 36px;
+  white-space: pre-wrap;
+  word-break: break-word;
   transition: color 0.3s ease;
 }
 
-.title-input::placeholder {
-  color: rgba(0, 0, 0, 0.2);
+.title-area:empty::before {
+  content: attr(data-placeholder);
+  color: var(--sk-text-muted, rgba(0, 0, 0, 0.2));
+  pointer-events: none;
 }
 
 .header-btns {
