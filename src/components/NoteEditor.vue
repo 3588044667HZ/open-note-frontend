@@ -33,11 +33,19 @@
                       d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
               </svg>
             </button>
+            <button class="hdr-btn" @click="handleExportDocx" :disabled="exporting" title="Export DOCX">
+              <svg v-if="!exporting" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                <path d="M8 1v8M4.5 6.5L8 10l3.5-3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 10.5v3a1 1 0 001 1h10a1 1 0 001-1v-3" stroke-linecap="round"/>
+              </svg>
+              <span v-else class="hdr-spinner"></span>
+            </button>
             <button class="hdr-btn" @click="handlePin" :title="form.isPinned ? 'Unpin' : 'Pin'">
-              <svg width="15" height="15" viewBox="0 0 15 15" :fill="form.isPinned ? '#006aff' : 'none'"
-                   stroke="currentColor" stroke-width="1.2">
-                <path d="M9.5 2.5L12 5M3 11l2.5-5.5L1 3l3-1.5L7.5 5l5-1.5L14 5l-4 4-3.5 5.5L3 11z"
-                      stroke-linejoin="round"/>
+              <svg v-if="!form.isPinned" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M4.146.146A.5.5 0 0 1 4.5 0h7a.5.5 0 0 1 .5.5c0 .68-.342 1.174-.646 1.479-.126.125-.25.224-.354.298v4.431l.078.048c.203.127.476.314.751.555C12.36 7.775 13 8.527 13 9.5a.5.5 0 0 1-.5.5h-4v4.5c0 .276-.224 1.5-.5 1.5s-.5-1.224-.5-1.5V10h-4a.5.5 0 0 1-.5-.5c0-.973.64-1.725 1.17-2.189A6 6 0 0 1 5 6.708V2.277a3 3 0 0 1-.354-.298C4.342 1.674 4 1.179 4 .5a.5.5 0 0 1 .146-.354m1.58 1.408-.002-.001zm-.002-.001.002.001A.5.5 0 0 1 6 2v5a.5.5 0 0 1-.276.447h-.002l-.012.007-.054.03a5 5 0 0 0-.827.58c-.318.278-.585.596-.725.936h7.792c-.14-.34-.407-.658-.725-.936a5 5 0 0 0-.881-.61l-.012-.006h-.002A.5.5 0 0 1 10 7V2a.5.5 0 0 1 .295-.458 1.8 1.8 0 0 0 .351-.271c.08-.08.155-.17.214-.271H5.14q.091.15.214.271a1.8 1.8 0 0 0 .37.282"/>
+              </svg>
+              <svg v-else width="16" height="16" fill="currentColor" class="pinned" viewBox="0 0 16 16">
+                <path d="M4.146.146A.5.5 0 0 1 4.5 0h7a.5.5 0 0 1 .5.5c0 .68-.342 1.174-.646 1.479-.126.125-.25.224-.354.298v4.431l.078.048c.203.127.476.314.751.555C12.36 7.775 13 8.527 13 9.5a.5.5 0 0 1-.5.5h-4v4.5c0 .276-.224 1.5-.5 1.5s-.5-1.224-.5-1.5V10h-4a.5.5 0 0 1-.5-.5c0-.973.64-1.725 1.17-2.189A6 6 0 0 1 5 6.708V2.277a3 3 0 0 1-.354-.298C4.342 1.674 4 1.179 4 .5a.5.5 0 0 1 .146-.354"/>
               </svg>
             </button>
             <button class="hdr-btn" @click="handleDelete" title="Delete">
@@ -100,6 +108,7 @@ import {ref, reactive, watch, computed, nextTick, onMounted, onUnmounted} from '
 import {useNoteStore} from '../stores/note'
 import {marked} from 'marked'
 import {renderToImage, getColorsFromCSS} from '../utils/share-image-renderer'
+import {exportDocx} from '../utils/html2docx'
 import {getShareSettings} from '../config/shareSettings'
 import TipTapEditor from './TipTapEditor.vue'
 import ShareImageModal from './ShareImageModal.vue'
@@ -133,6 +142,7 @@ const titleEl = ref(null)
 const mdEditorRef = ref(null)
 let hasConflict = ref(false)
 const sharing = ref(false)
+const exporting = ref(false)
 const shareBlob = ref(null)
 const shareFilename = computed(() => `${form.title || 'Untitled'}_${Date.now()}.png`)
 
@@ -234,6 +244,21 @@ async function handleShare() {
     console.error('share image failed:', e)
   } finally {
     sharing.value = false
+  }
+}
+
+async function handleExportDocx() {
+  if (!props.note) return
+  exporting.value = true
+  try {
+    // 标题 + 内容 HTML 组装导出文档
+    const html = `<h1>${form.title || ''}</h1>` + (form.content || '')
+    const filename = `${form.title || 'Untitled'}.docx`
+    await exportDocx(html, filename)
+  } catch (e) {
+    console.error('export docx failed:', e)
+  } finally {
+    exporting.value = false
   }
 }
 
@@ -366,6 +391,24 @@ onUnmounted(() => {
 .hdr-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.hdr-btn svg.pinned {
+  color: var(--sk-accent, #006aff);
+}
+
+.hdr-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--sk-border, rgba(0, 0, 0, 0.1));
+  border-top-color: var(--sk-icon-hover, rgba(0, 0, 0, 0.5));
+  border-radius: 50%;
+  animation: hdr-spin 0.6s linear infinite;
+}
+
+@keyframes hdr-spin {
+  to { transform: rotate(360deg); }
 }
 
 .header-row-2 {
