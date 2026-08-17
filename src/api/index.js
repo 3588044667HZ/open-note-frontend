@@ -155,6 +155,60 @@ export function uploadFile(file, noteId) {
   })
 }
 
+// ---- 两阶段上传（ATTACHMENT_TWO_PHASE_UPLOAD_SPEC）----
+
+// 4.1 注册附件位置（attachId 客户端 UUID，幂等键）
+export function registerAttachment(data) {
+  return api.post('/attachments', data)
+}
+
+// 4.2 凭回执补传文件内容（二进制流，幂等可覆盖）
+export function uploadAttachmentFile(attachId, file, onProgress) {
+  return api.put(`/attachments/${attachId}/file`, file, {
+    headers: { 'Content-Type': 'application/octet-stream' },
+    timeout: 60000,
+    onUploadProgress: onProgress,
+  })
+}
+
+// 压缩图下载地址：content 一律写这个（相对路径，浏览器/客户端各自补 host）
+export function getAttachmentThumbUrl(attachId) {
+  return `/api/attachments/${attachId}/download?size=thumb`
+}
+
+// 原图下载地址：仅"查看原图"按需请求，不写入 content
+export function getAttachmentOriginalUrl(attachId) {
+  return `/api/attachments/${attachId}/download`
+}
+
+// 带鉴权 + 进度的原图下载（fetch 直连，可读 X-Attachment-State 响应头）
+// onProgress: (loaded, total) => void；返回 { blob, state }
+export async function downloadAttachmentWithProgress(url, onProgress) {
+  const token = localStorage.getItem('token')
+  const res = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) throw new Error(`download failed: ${res.status}`)
+  const total = Number(res.headers.get('Content-Length') || 0)
+  const state = res.headers.get('X-Attachment-State') || 'ready'
+  if (!res.body) {
+    const blob = await res.blob()
+    onProgress?.(blob.size, total || blob.size)
+    return { blob, state }
+  }
+  const reader = res.body.getReader()
+  const chunks = []
+  let loaded = 0
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    chunks.push(value)
+    loaded += value.length
+    onProgress?.(loaded, total)
+  }
+  return { blob: new Blob(chunks, { type: res.headers.get('Content-Type') || 'image/webp' }), state }
+}
+
 export function getAttachmentDownloadUrl(attachId) {
   return `/api/attachments/${attachId}/download`
 }

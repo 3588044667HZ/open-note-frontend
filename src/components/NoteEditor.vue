@@ -78,6 +78,7 @@
           ref="mdEditorRef"
           v-model="form.content"
           placeholder="Start writing..."
+          :note-id="props.note?.id || ''"
           @update:model-value="dirty = true"
       />
       <div v-if="hasConflict" class="conflict-banner">
@@ -110,6 +111,7 @@ import {marked} from 'marked'
 import {renderToImage, getColorsFromCSS} from '../utils/share-image-renderer'
 import {exportDocx} from '../utils/html2docx'
 import {getShareSettings} from '../config/shareSettings'
+import {processUploadQueue} from '../composables/useAttachmentUpload'
 import TipTapEditor from './TipTapEditor.vue'
 import ShareImageModal from './ShareImageModal.vue'
 import dayjs from 'dayjs'
@@ -194,6 +196,8 @@ async function autoSave(force = false) {
     lastSavedVersion = updated.updatedAt
     dirty.value = false
     emit('updated', updated)
+    // 保存时顺手补传待传附件（spec 七.3：保存/同步时补传文件）
+    processUploadQueue()
   } catch (e) {
     if (e?.response?.status === 409) {
       hasConflict.value = true

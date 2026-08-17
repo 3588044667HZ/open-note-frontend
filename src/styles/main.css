@@ -128,6 +128,24 @@ input, textarea {
 .tt-btn.active { background: var(--sk-active-bg, rgba(0,106,255,0.1)); color: var(--sk-accent, #006aff); }
 .tt-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* 待上传附件数量角标 */
+.tt-upload-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: var(--sk-accent, #006aff);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+}
+.tt-btn { position: relative; }
+
 .mode-toggle {
   display: flex;
   margin-left: auto;

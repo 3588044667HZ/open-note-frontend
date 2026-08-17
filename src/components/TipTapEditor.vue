@@ -44,13 +44,14 @@
       </div>
 
       <span class="tt-spacer" />
-      <button class="tt-btn" @click="triggerImageUpload" :disabled="uploading" title="Insert image">
-        <svg v-if="!uploading" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+      <button class="tt-btn" @click="triggerImageUpload" :disabled="isUploading" :title="uploadTitle">
+        <svg v-if="!isUploading" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
           <rect x="1" y="3" width="14" height="10" rx="1.5"/>
           <circle cx="5" cy="6" r="1.5"/>
           <path d="M1 11l4-3 3 2 2-2 5 4" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span v-else class="tt-spinner"></span>
+        <span v-if="pendingUploadCount > 1" class="tt-upload-badge">{{ pendingUploadCount }}</span>
       </button>
       <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden @change="onFileSelected" />
 
@@ -66,10 +67,17 @@
         <EditorContent :editor="editor" class="tt-content" />
       </div>
       <div v-show="mode !== 'edit'" class="tt-preview-pane">
-        <div class="tt-preview markdown-body" v-html="renderedHTML" />
+        <div class="tt-preview markdown-body" v-html="renderedHTML" @click="onPreviewClick" />
       </div>
     </div>
   </div>
+  <ImagePreviewModal
+    v-if="preview"
+    :attach-id="preview.attachId"
+    :thumb-src="preview.thumbSrc"
+    :file-name="preview.fileName"
+    @close="preview = null"
+  />
 </template>
 
 <script setup>
@@ -83,8 +91,10 @@ import { TextStyleWithClass } from '../extensions/textStyle'
 import { ColoredUnderline } from '../extensions/underline'
 import { FormatCommands } from '../extensions/formatCommands'
 import { useEditorStore, TEXT_COLOR_MAP, HIGHLIGHT_COLOR_MAP } from '../composables/useEditorStore'
+import { enqueueUpload, pendingUploadCount, isUploading, onUploadSuccess, onUploadFallback } from '../composables/useAttachmentUpload'
+import { getAttachmentThumbUrl } from '../api'
+import ImagePreviewModal from './ImagePreviewModal.vue'
 import FormatIcon from './FormatIcon.vue'
-import { uploadFile } from '../api'
 import { marked } from 'marked'
 
 marked.setOptions({ breaks: true, gfm: true, sanitize: false })
@@ -92,6 +102,7 @@ marked.setOptions({ breaks: true, gfm: true, sanitize: false })
 const props = defineProps({
   modelValue: { type: String, default: '' },
   placeholder: { type: String, default: 'Write something...' },
+  noteId: { type: String, default: '' },
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -99,7 +110,12 @@ const store = useEditorStore()
 const mode = ref('edit')
 const showColorPicker = ref(false)
 const fileInput = ref(null)
-const uploading = ref(false)
+const preview = ref(null)
+
+const uploadTitle = computed(() => {
+  if (pendingUploadCount.value === 0) return 'Insert image'
+  return `${pendingUploadCount.value} attachment(s) pending upload`
+})
 
 const colorTabs = [
   { key: 'text', label: 'Text' },
@@ -195,10 +211,19 @@ const editor = useEditor({
     attributes: {
       class: 'tiptap-content markdown-body',
     },
+    // 双击正文图片 → 打开全屏预览（"查看原图"交互；单击保留节点选中语义）
+    handleDoubleClick: (_view, _pos, event) => {
+      const target = event.target
+      if (target instanceof HTMLElement && target.tagName === 'IMG') {
+        return tryOpenPreview(target) || false
+      }
+      return false
+    },
   },
   onUpdate: ({ editor }) => {
+    // 上传完成后的强制刷新会给 src 追加 &t= 时间戳，保存时清洗掉，content 保持规范 URL
     console.log('[tiptap] onUpdate → getHTML:', editor.getHTML())
-    emit('update:modelValue', editor.getHTML())
+    emit('update:modelValue', stripRefreshParam(editor.getHTML()))
   },
   onSelectionUpdate: () => {
     store.updateMarkStatus()
@@ -212,10 +237,75 @@ const editor = useEditor({
 store.bind(editor.value)
 watch(() => editor.value, (ed) => { if (ed) store.bind(ed) })
 
+// 清洗强制刷新参数：?t=123 / &t=123（仅本应用为绕过占位图缓存追加，不入库）
+function stripRefreshParam(html) {
+  return html.replace(/[?&]t=\d+/g, '')
+}
+
+// 从 IMG 元素解析附件 id 并打开预览；返回是否已处理
+function tryOpenPreview(target) {
+  const src = target.getAttribute('src') || ''
+  const m = src.match(/attachments\/([^/?]+)\/download/)
+  if (!m) return false
+  preview.value = {
+    attachId: m[1],
+    thumbSrc: src,
+    fileName: target.getAttribute('alt') || '',
+  }
+  return true
+}
+
+function onPreviewClick(e) {
+  const target = e.target
+  if (target instanceof HTMLElement && target.tagName === 'IMG') {
+    tryOpenPreview(target)
+  }
+}
+
+// 上传完成：给正文/预览中该附件的图片 src 追加时间戳，强制绕过占位图缓存加载真图
+function refreshAttachmentImages() {
+  const ed = editor.value
+  if (!ed) return
+  const ts = Date.now()
+  let changed = false
+  const tr = ed.state.tr
+  ed.state.doc.descendants((node, pos) => {
+    if (node.type.name === 'image' && /\/api\/attachments\//.test(node.attrs.src || '')) {
+      const base = stripRefreshParam(node.attrs.src)
+      tr.setNodeMarkup(pos, undefined, {
+        ...node.attrs,
+        src: `${base}${base.includes('?') ? '&' : '?'}t=${ts}`,
+      })
+      changed = true
+    }
+  })
+  if (changed) ed.view.dispatch(tr)
+}
+
+// 旧接口回退（后端未升级）：把 doc 中该附件的 src 替换为旧一步式接口返回的 URL
+function replaceAttachmentSrc(attachId, newUrl) {
+  const ed = editor.value
+  if (!ed) return
+  const base = getAttachmentThumbUrl(attachId).split('?')[0]
+  let changed = false
+  const tr = ed.state.tr
+  ed.state.doc.descendants((node, pos) => {
+    if (node.type.name === 'image' && (node.attrs.src || '').split('?')[0] === base) {
+      tr.setNodeMarkup(pos, undefined, { ...node.attrs, src: newUrl })
+      changed = true
+    }
+  })
+  if (changed) ed.view.dispatch(tr)
+}
+
+onUploadSuccess(refreshAttachmentImages)
+onUploadFallback(replaceAttachmentSrc)
+
 watch(() => props.modelValue, (html) => {
   const ed = editor.value
   const normalized = normalizeLegacyColors(html)
-  if (ed && normalized !== ed.getHTML()) {
+  const current = ed ? stripRefreshParam(ed.getHTML()) : ''
+  if (ed && normalized !== current) {
     console.log('[tiptap] modelValue watch → setContent (REWRITE):', normalized)
     console.log('[tiptap]   current getHTML:', ed.getHTML())
     ed.commands.setContent(normalized || '', { emitUpdate: false })
@@ -242,16 +332,25 @@ function triggerImageUpload() { fileInput.value?.click() }
 async function onFileSelected(e) {
   const file = e.target.files?.[0]
   if (!file) return
-  uploading.value = true
-  try {
-    const res = await uploadFile(file, null)
-    const url = res.data?.url || `/api/attachments/${res.data?.fileId}/download`
-    editor.value?.chain().focus().setImage({ src: url, alt: file.name }).run()
-  } catch (err) {
-    console.error('upload failed:', err)
-  } finally {
-    uploading.value = false
+  if (!file.type.startsWith('image/')) {
+    console.warn('non-image file ignored:', file.type)
     if (fileInput.value) fileInput.value.value = ''
+    return
+  }
+  if (fileInput.value) fileInput.value.value = ''
+  try {
+    // 两阶段：注册（attachId=客户端 UUID）→ content 立即写压缩图 URL → 后台补传文件内容
+    // 上传完成后服务端压缩图就绪，refreshAttachmentImages 强制刷新为真图
+    await enqueueUpload({
+      file,
+      noteId: props.noteId,
+      fileName: file.name,
+      onInsert: (attachId) => {
+        editor.value?.chain().focus().setImage({ src: getAttachmentThumbUrl(attachId), alt: file.name }).run()
+      },
+    })
+  } catch (err) {
+    console.error('enqueue upload failed:', err)
   }
 }
 

@@ -76,6 +76,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useNoteStore } from './stores/note'
 import { useAuthStore } from './stores/auth'
 import { useSkinStore } from './stores/skin'
+import { restoreUploadQueue } from './composables/useAttachmentUpload'
 import LoginPage from './components/LoginPage.vue'
 import LeftPanel from './components/LeftPanel.vue'
 import NoteEditor from './components/NoteEditor.vue'
@@ -109,6 +110,8 @@ function onNoteDeleted(id) {
 async function onLoggedIn() {
   await authStore.fetchMe()
   await loadNotesData()
+  // 恢复上次未传完的附件待传队列（两阶段上传，重启不丢失）
+  restoreUploadQueue().catch((e) => console.error('restore upload queue failed:', e))
   // 数据未加载成功时自动重试一次（网络抖动/超时场景）
   if (store.notes.length === 0 && store.notebooks.length === 0 && !store.loading) {
     await loadNotesData()
